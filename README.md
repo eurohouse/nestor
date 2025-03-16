@@ -6,7 +6,7 @@ Indulge yourself in a beautiful, tasteful experience with our unique vintage dig
 
 ## Composition
 
-![Collage](https://github.com/eurohouse/nestor/blob/main/Maison%20de%20Rothschild.png?raw=true)
+![China Imperialism Cartoon](https://github.com/eurohouse/nestor/blob/main/China%20Imperialism%20Cartoon.png?raw=true)
 
 ### Videos (Mortal Kombat XI)
 
@@ -18,7 +18,7 @@ Indulge yourself in a beautiful, tasteful experience with our unique vintage dig
 * Hot Air Balloon
 * LUX Brand Logo
 
-![Collage](https://github.com/eurohouse/nestor/blob/main/Wine%20Chart.png?raw=true)
+![Wine Chart](https://github.com/eurohouse/nestor/blob/main/Wine%20Chart.png?raw=true)
 
 ### Coats of Arms (Dynasties)
 
@@ -31,7 +31,7 @@ Indulge yourself in a beautiful, tasteful experience with our unique vintage dig
 * Mona Lisa by Leonardo da Vinci
 * China Imperialism Cartoon
 
-![Collage](https://github.com/eurohouse/nestor/blob/main/Periodic%20Table.png?raw=true)
+![Periodic Table of Chemical Elements](https://github.com/eurohouse/nestor/blob/main/Periodic%20Table.png?raw=true)
 
 ### Honorable Mentions
 
