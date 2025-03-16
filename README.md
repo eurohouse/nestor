@@ -6,7 +6,7 @@ Indulge yourself in a beautiful, tasteful experience with our unique vintage dig
 
 ## Composition
 
-![China Imperialism Cartoon](https://github.com/eurohouse/nestor/blob/main/China%20Imperialism%20Cartoon.png?raw=true | width=250)
+![House of Rothschild](https://github.com/eurohouse/nestor/blob/main/Maison%20de%20Rothschild.png?raw=true)
 
 ### Videos (Mortal Kombat XI)
 
@@ -63,3 +63,5 @@ Indulge yourself in a beautiful, tasteful experience with our unique vintage dig
 * Month 10. Vendémiaire
 * Month 11. Brumaire
 * Month 12. Frimaire
+
+![China Imperialism Cartoon](https://github.com/eurohouse/nestor/blob/main/China%20Imperialism%20Cartoon.png?raw=true)
