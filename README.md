@@ -6,7 +6,7 @@ Indulge yourself in a beautiful, tasteful experience with our unique vintage dig
 
 ## Composition
 
-![China Imperialism Cartoon](https://github.com/eurohouse/nestor/blob/main/China%20Imperialism%20Cartoon.png?raw=true =250x)
+![China Imperialism Cartoon](https://github.com/eurohouse/nestor/blob/main/China%20Imperialism%20Cartoon.png?raw=true){ width=50% }
 
 ### Videos (Mortal Kombat XI)
 
