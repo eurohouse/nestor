@@ -22,9 +22,16 @@ Indulge yourself in a beautiful, tasteful experience with our unique vintage dig
 
 ### Coats of Arms (Dynasties)
 
-* House of Bourbon (Maison de Bourbon)
-* House of Medici (Maison de Medici)
-* House of Rothschild (Maison de Rothschild)
+* House of Medici (Maison de Médicis) - Medieval Clan
+* House of Bourbon (Maison de Bourbon) - Royal Family of France
+* House of Bonaparte (Maison de Bonaparte) - We're looking at you, Napoleon!
+* House of Savoy (Maison de Savoie) - Royal Family of Italy
+* House of Orange-Nassau (Maison d'Orange-Nassau) - Royal Family of Netherlands
+* House of Holstein-Gottorp (Maison de Holstein-Gottorp) - Royal Family of Russia
+* House of Württemberg (Maison de Wurtemberg) - Royal Family of Germany
+* House of Habsburg (Maison de Habsbourg) - Royal Family of Austria
+* House of Windsor (Maison Windsor) - Royal Family of Great Britain
+* House of Rothschild (Maison de Rothschild) - World Industry
 
 ### Paintings and Cartoons
 
@@ -36,10 +43,11 @@ Indulge yourself in a beautiful, tasteful experience with our unique vintage dig
 ### Honorable Mentions
 
 * Wine Chart
+* Triune Brain
 * Periodic Table
 * Blue Danube Waltz
 * Audrey Hepburn
-* Keyboard Keycode Maps
+* Project 007
 
 ### French Republican Calendar
 
