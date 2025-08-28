@@ -1,4 +1,4 @@
-# Eurohouse Nestor
+# Eurohouse Digital Content Collection
 
 Indulge yourself in a beautiful, tasteful experience with our unique vintage digital art collection.
 
