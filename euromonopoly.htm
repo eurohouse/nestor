@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>EuroMonopoly</title>
+<link rel="shortcut icon" href="Hot Air Balloon.png" type="image/x-icon">
+<style>
+:root {
+  --cell-size: clamp(20px, 5.2vw, 56px);
+  --corner-size: clamp(32px, 8vw, 90px);
+  --bg: #f0f4f8;
+  --board-bg: #d0d4d8;
+  --board-border: #3b7e40;
+  --cell-bg: #ffffff;
+  --cell-border: #999;
+  --text: #222;
+  --text-muted: #888;
+  --log-bg: #ffffff;
+  --log-border: #ccc;
+  --th-bg: #909498;
+  --th-text: #fff;
+  --row-current: #fff9c4;
+  --btn-bg: #4caf50;
+  --btn-border: #1b5e20;
+  --action-bg: #1976d2;
+  --action-border: #0d47a1;
+  --sell-bg: #f57c00;
+  --sell-border: #e65100;
+  --auction-bg: #7b1fa2;
+  --auction-border: #4a148c;
+}
+[data-theme="dark"] {
+  --bg: #1a1a2e;
+  --board-bg: #1b3a1b;
+  --board-border: #0d1f0d;
+  --cell-bg: #2a2a3e;
+  --cell-border: #555;
+  --text: #e0e0e0;
+  --text-muted: #aaa;
+  --log-bg: #2a2a3e;
+  --log-border: #444;
+  --th-bg: #0d2818;
+  --th-text: #a0d0a0;
+  --row-current: #3d3520;
+  --btn-bg: #2e7d32;
+  --btn-border: #1b5e20;
+  --action-bg: #1565c0;
+  --action-border: #0d47a1;
+  --sell-bg: #e65100;
+  --sell-border: #bf360c;
+  --auction-bg: #6a1b9a;
+  --auction-border: #4a148c;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: var(--bg);
+  padding: 0.5rem;
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+h1 { font-size: 1.3rem; }
+.header-btns { display: flex; gap: 0.4rem; }
+.header-btn {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.85rem;
+  border: 2px solid var(--cell-border);
+  border-radius: 6px;
+  background: var(--cell-bg);
+  color: var(--text);
+  cursor: pointer;
+}
+#board-wrapper {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 0.8rem;
+  width: 100%;
+}
+#board {
+  display: grid;
+  grid-template-columns: var(--corner-size) repeat(9, var(--cell-size));
+  grid-template-rows: var(--corner-size) repeat(9, var(--cell-size));
+  gap: 2px;
+  background: var(--board-bg);
+  padding: 4px;
+  border: 3px solid var(--board-border);
+  border-radius: 6px;
+  transition: background 0.3s, border-color 0.3s;
+}
+.cell {
+  background: var(--cell-bg);
+  border: 1px solid var(--cell-border);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.55rem;
+  line-height: 1.1;
+  overflow: hidden;
+  text-align: center;
+  transition: background 0.3s, border-color 0.3s;
+}
+.cell .color-bar { height: 14px; width: 100%; flex-shrink: 0; }
+.cell .name { padding: 2px 1px; font-weight: bold; font-size: 0.5rem; color: var(--text); }
+.cell .price { font-size: 0.5rem; color: var(--text-muted); padding-bottom: 2px; }
+.corner {
+  font-size: 0.55rem; font-weight: bold;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; background: var(--cell-bg);
+}
+.c-brown .color-bar { background: #8b4513; }
+.c-lightblue .color-bar { background: #87ceeb; }
+.c-pink .color-bar { background: #d4499a; }
+.c-orange .color-bar { background: #ff8c00; }
+.c-red .color-bar { background: #e53935; }
+.c-yellow .color-bar { background: #fdd835; }
+.c-green .color-bar { background: #43a047; }
+.c-blue .color-bar { background: #1e88e5; }
+.tokens {
+  position: absolute; bottom: 2px; left: 0; right: 0;
+  display: flex; flex-wrap: wrap; gap: 1px; justify-content: center; z-index: 10;
+}
+.token {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+.cell .current-turn {
+  position: absolute; top: 2px; right: 2px;
+  width: 7px; height: 7px; background: #ffd700;
+  border-radius: 50%; box-shadow: 0 0 4px #ffd700;
+  animation: pulse 1s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+#center-area {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: space-between;
+  padding: 0.6rem; gap: 0.5rem;
+}
+#log {
+  width: 100%; flex: 1;
+  padding: 0.6rem; border: 1px solid var(--log-border);
+  border-radius: 6px; background: var(--log-bg);
+  font-size: 1rem; overflow-y: auto;
+  min-height: 100px; max-height: 280px;
+  transition: background 0.3s, border-color 0.3s;
+}
+.log-entry { padding: 3px 0; line-height: 1.3; }
+.log-entry:nth-child(even) { background: rgba(128,128,128,0.08); }
+#dice-area {
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem; width: 100%;
+}
+#dice-display {
+  display: flex; gap: 0.6rem; align-items: center; justify-content: center;
+}
+.die {
+  width: 50px; height: 50px; border: 2px solid #333; border-radius: 10px;
+  background: #fff; display: grid;
+  grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr);
+  padding: 6px; gap: 2px; flex-shrink: 0;
+}
+.die .pip {
+  width: 8px; height: 8px; border-radius: 50%; background: #333;
+  align-self: center; justify-self: center;
+}
+.die .pip.empty { background: transparent; }
+.die.rolling { animation: spin 0.4s ease-out; }
+@keyframes spin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.15); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+#btn-row { display: flex; gap: 0.5rem; flex-wrap: nowrap; justify-content: center; width: 100%; }
+button.game-btn {
+  padding: 0.75rem 0.5rem; font-size: 1.1rem;
+  border: 2px solid var(--btn-border); border-radius: 8px;
+  background: var(--btn-bg); color: #fff; cursor: pointer;
+  flex: 1 1 0; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+button.game-btn:active { transform: scale(0.96); }
+button.game-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+button.game-btn.action { background: var(--action-bg); border-color: var(--action-border); }
+button.game-btn.sell { background: var(--sell-bg); border-color: var(--sell-border); }
+button.game-btn.auction { background: var(--auction-bg); border-color: var(--auction-border); }
+#auction-area {
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.6rem; padding: 0.8rem; width: 100%; height: 100%; flex: 1;
+}
+#auction-area.visible { display: flex; }
+#auction-area .auction-title { font-size: 1.2rem; font-weight: bold; text-align: center; color: var(--text); }
+#auction-area .auction-info { font-size: 1rem; text-align: center; color: var(--text-muted); }
+#auction-bid { width: 120px; padding: 0.5rem; font-size: 1.1rem; text-align: center;
+  border: 2px solid var(--cell-border); border-radius: 6px; background: var(--cell-bg); color: var(--text); }
+#auction-btn-row { display: flex; gap: 0.5rem; width: 100%; flex-wrap: nowrap; }
+#auction-btn-row .game-btn { flex: 1 1 0; min-width: 0; }
+/* When auction is active, hide log and dice-area entirely */
+#center-area.auction-mode #log,
+#center-area.auction-mode #dice-area { display: none !important; }
+#auction-area label { font-size: 0.95rem; }
+#auction-bid {
+  width: 80px; padding: 0.4rem; font-size: 1rem; text-align: center;
+  border: 2px solid var(--cell-border); border-radius: 6px; background: var(--cell-bg);
+  color: var(--text);
+}
+.color-dot {
+  display: inline-block; width: 12px; height: 12px;
+  border-radius: 50%; margin-right: 4px; vertical-align: middle;
+  border: 1.5px solid #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.flag-btn { padding: 2px 4px; line-height: 0; }
+.flag-btn img { border-radius: 3px; display: block; }
+.flag-btn.active { border-color: #4caf50; box-shadow: 0 0 0 2px #4caf50; }
+#theme-btn { display: flex; align-items: center; justify-content: center; }
+.prop-name-input {
+  width: 100px; padding: 2px 4px; font-size: 0.85rem;
+  border: 1px solid var(--cell-border); border-radius: 4px;
+  background: var(--cell-bg); color: var(--text);
+}
+#properties-detail { margin-top: 0.8rem; width: 100%; }
+.prop-block { margin-bottom: 0.6rem; border: 1px solid var(--cell-border); border-radius: 6px; overflow: hidden; }
+.prop-block-header { background: var(--th-bg); color: var(--th-text); padding: 0.4rem 0.5rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; }
+.prop-block-body { padding: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.3rem; background: var(--cell-bg); }
+.prop-card { display: flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.4rem; border: 1px solid var(--cell-border); border-radius: 4px; font-size: 0.82rem; }
+.prop-card .prop-color { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.prop-card .prop-name { white-space: nowrap; }
+.prop-empty { color: var(--text-muted); font-size: 0.85rem; padding: 0.3rem; }
+@media (max-width: 700px) {
+  :root { --cell-size: clamp(18px, 6vw, 42px); --corner-size: clamp(28px, 9vw, 68px); }
+  .cell .name { font-size: 0.42rem; }
+  .cell .price { font-size: 0.4rem; }
+  h1 { font-size: 1.1rem; }
+  .die { width: 42px; height: 42px; padding: 4px; }
+  .die .pip { width: 6px; height: 6px; }
+  button.game-btn { font-size: 0.82rem; padding: 0.5rem 0.3rem; }
+  #log { font-size: 0.9rem; }
+  table { font-size: 0.85rem; }
+  .name-input { width: 70px; }
+}
+@media (max-width: 500px) {
+  :root { --cell-size: clamp(16px, 7vw, 36px); --corner-size: clamp(24px, 10vw, 58px); }
+  .cell .name { font-size: 0.38rem; }
+  .cell .price { font-size: 0.36rem; }
+  table { font-size: 0.78rem; }
+  .die { width: 38px; height: 38px; padding: 3px; }
+  .die .pip { width: 5px; height: 5px; }
+  button.game-btn { font-size: 0.72rem; padding: 0.4rem 0.25rem; }
+  .name-input { width: 60px; font-size: 0.8rem; }
+}
+@media (max-width: 380px) {
+  :root { --cell-size: clamp(14px, 7.5vw, 30px); --corner-size: clamp(20px, 11vw, 48px); }
+  .cell .name { font-size: 0.34rem; }
+  .cell .price { display: none; }
+  button.game-btn { font-size: 0.65rem; padding: 0.35rem 0.2rem; }
+  table { font-size: 0.72rem; }
+  .name-input { width: 50px; font-size: 0.75rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1 id="title">EuroMonopoly</h1>
+  <div class="header-btns" id="lang-btns">
+    <button class="header-btn flag-btn" data-lang="en" title="English"><img src="Flag.GB.webp" alt="EN" width="28" height="28"></button>
+    <button class="header-btn flag-btn" data-lang="fr" title="Français"><img src="Flag.FR.webp" alt="FR" width="28" height="28"></button>
+    <button class="header-btn flag-btn" data-lang="it" title="Italiano"><img src="Flag.IT.webp" alt="IT" width="28" height="28"></button>
+    <button class="header-btn flag-btn" data-lang="de" title="Deutsch"><img src="Flag.DE.webp" alt="DE" width="28" height="28"></button>
+    <button class="header-btn flag-btn" data-lang="ru" title="Русский"><img src="Flag.RU.webp" alt="RU" width="28" height="28"></button>
+    <button class="header-btn" id="theme-btn"><svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#FFD700" stroke="#FF8F00" stroke-width="2"/><g stroke="#FF8F00" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.5" y1="4.5" x2="6.5" y2="6.5"/><line x1="17.5" y1="17.5" x2="19.5" y2="19.5"/><line x1="4.5" y1="19.5" x2="6.5" y2="17.5"/><line x1="17.5" y1="6.5" x2="19.5" y2="4.5"/></g></svg></button>
+  </div>
+</div>
+
+<div id="board-wrapper">
+  <div id="board"></div>
+</div>
+
+<div id="properties-detail"></div>
+
+<script>
+/* ========== I18N ========== */
+const I18N = {
+  en: {
+    title: 'EuroMonopoly',
+    roll: 'Roll Dice', buy: 'Buy', auction: 'Auction', skip: 'Skip',
+    sellProp: 'Sell', payJail: 'Pay \u20ac50', rollDoubles: 'Roll for Doubles',
+    newGame: 'New Game', bid: 'Bid', pass: 'Pass', auctionLabel: 'Your bid (\u20ac):',
+    thPlayer: 'Player', thMoney: 'Money', thPos: 'Position', thProps: 'Properties', thStatus: 'Status',
+    stFree: 'free', stJail: 'in jail', stElim: 'eliminated',
+    logStart: 'Game started! Click "Roll Dice".',
+    logRenamed: '{0} is now {1}',
+    logRolled: '{0} rolled {1}+{2} = {3}. {4} \u2192 {5}.',
+    logDoubles: '{0}: doubles! Roll again.',
+    logDoublesJail: '{0}: 3 doubles in a row! Go to jail!',
+    logPassStart: '{0} passes START, +\u20ac200',
+    logBought: '{0} bought "{1}" for \u20ac{2}.',
+    logCantBuy: '{0}: not enough money for "{1}" (\u20ac{2}).',
+    logPaidRent: '{0} paid {1} \u20ac{2} rent for "{3}".',
+    logTax: '{0}: tax \u20ac{1}.',
+    logGoJail: '{0}: sent to jail!',
+    logJailTry: '{0}: in jail (turn {1}/3).',
+    logJailDouble: '{0}: doubles! Out of jail.',
+    logJailPay: '{0}: paid \u20ac50 and leaves jail.',
+    logFreePark: '{0}: free parking.',
+    logVisitJail: '{0}: visiting jail.',
+    logStartCell: '{0} on START!',
+    logChance: '{0}: {1}',
+    logCommunity: '{0}: {1}',
+    logSellProp: '{0} sold "{1}" for \u20ac{2}.',
+    logEliminated: '{0} is bankrupt and eliminated!',
+    logWinner: '{0} wins! Game over.',
+    logAuctionStart: 'Auction for "{0}". Minimum bid \u20ac{1}.',
+    logAuctionBid: '{0} bids \u20ac{1}.',
+    logAuctionPass: '{0} passes.',
+    logAuctionWon: '{0} won "{1}" for \u20ac{2}!',
+    logAuctionNone: 'No one bid. "{0}" stays with the bank.',
+    logAuctionTurn: 'Auction: {0}\'s turn. Current bid: \u20ac{1}.',
+    chCards: [
+      { msg: 'Chance: receive \u20ac50', fn: function(p) { p.money += 50; } },
+      { msg: 'Chance: pay \u20ac50', fn: function(p) { p.money -= 50; } },
+      { msg: 'Chance: go to START', fn: function(p) { p.position = 0; p.money += 200; } },
+      { msg: 'Chance: fine \u20ac25', fn: function(p) { p.money -= 25; } },
+      { msg: 'Chance: go to jail', fn: function(p) { p.position = 10; p.status = 'in_jail'; p.inJailTurns = 0; } }
+    ],
+    coCards: [
+      { msg: 'Community Chest: receive \u20ac25', fn: function(p) { p.money += 25; } },
+      { msg: 'Community Chest: pay \u20ac40', fn: function(p) { p.money -= 40; } },
+      { msg: 'Community Chest: inheritance +\u20ac100', fn: function(p) { p.money += 100; } },
+      { msg: 'Community Chest: fine \u20ac10', fn: function(p) { p.money -= 10; } }
+    ],
+    propNames: [
+      'START','Madrid','Community Chest','Barcelona','Tax \u20ac200','Gare de Lyon',
+      'Rome','Chance','Venice','Milan','JAIL','Berlin','Electric Co.','Hamburg',
+      'Munich','Frankfurt Hbf','Prague','Community Chest','Vienna','Budapest',
+      'FREE PARKING','Amsterdam','Chance','Brussels','Paris','Gare du Nord',
+      'London','Dublin','Water Works','Edinburgh','GO TO JAIL!','Stockholm',
+      'Copenhagen','Community Chest','Helsinki','Stockholm C','Chance','Athens',
+      'Tax \u20ac100','Moscow'
+    ]
+  },
+  ru: {
+    title: '\u0415\u0432\u0440\u043e\u043c\u043e\u043d\u043e\u043f\u043e\u043b\u0438\u044f',
+    roll: '\u0411\u0440\u043e\u0441\u0438\u0442\u044c \u043a\u0443\u0431\u0438\u043a',
+    buy: '\u041a\u0443\u043f\u0438\u0442\u044c', auction: '\u0410\u0443\u043a\u0446\u0438\u043e\u043d', skip: '\u041f\u0440\u043e\u043f\u0443\u0441\u0442\u0438\u0442\u044c',
+    sellProp: '\u041f\u0440\u043e\u0434\u0430\u0442\u044c',
+    payJail: '\u0417\u0430\u043f\u043b\u0430\u0442\u0438\u0442\u044c 50\u20ac',
+    rollDoubles: '\u0411\u0440\u043e\u0441\u0438\u0442\u044c \u043d\u0430 \u0434\u0443\u0431\u043b\u044c',
+    newGame: '\u041d\u043e\u0432\u0430\u044f \u0438\u0433\u0440\u0430',
+    bid: '\u0421\u0442\u0430\u0432\u043a\u0430', pass: '\u041f\u0430\u0441', auctionLabel: '\u0412\u0430\u0448\u0430 \u0441\u0442\u0430\u0432\u043a\u0430 (\u20ac):',
+    thPlayer: '\u0418\u0433\u0440\u043e\u043a', thMoney: '\u0414\u0435\u043d\u044c\u0433\u0438', thPos: '\u041f\u043e\u0437\u0438\u0446\u0438\u044f',
+    thProps: '\u0421\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u043d\u043e\u0441\u0442\u044c', thStatus: '\u0421\u0442\u0430\u0442\u0443\u0441',
+    stFree: '\u0441\u0432\u043e\u0431\u043e\u0434\u0435\u043d', stJail: '\u0432 \u0442\u044e\u0440\u044c\u043c\u0435', stElim: '\u0432\u044b\u0431\u044b\u043b',
+    logStart: '\u0418\u0433\u0440\u0430 \u043d\u0430\u0447\u0430\u043b\u0430\u0441\u044c! \u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u00ab\u0411\u0440\u043e\u0441\u0438\u0442\u044c \u043a\u0443\u0431\u0438\u043a\u00bb.',
+    logRenamed: '{0} \u2192 \u0442\u0435\u043f\u0435\u0440\u044c {1}',
+    logRolled: '{0} \u0431\u0440\u043e\u0441\u0438\u043b {1}+{2} = {3}. {4} \u2192 {5}.',
+    logDoubles: '{0}: \u0434\u0443\u0431\u043b\u044c! \u0425\u043e\u0434\u0438\u0442 \u0441\u043d\u043e\u0432\u0430.',
+    logDoublesJail: '{0}: 3 \u0434\u0443\u0431\u043b\u044f \u043f\u043e\u0434\u0440\u044f\u0434! \u0412 \u0442\u044e\u0440\u044c\u043c\u0443!',
+    logPassStart: '{0} \u043f\u0440\u043e\u0445\u043e\u0434\u0438\u0442 \u0421\u0422\u0410\u0420\u0422, +200\u20ac',
+    logBought: '{0} \u043a\u0443\u043f\u0438\u043b \u00ab{1}\u00bb \u0437\u0430 {2}\u20ac.',
+    logCantBuy: '{0}: \u043d\u0435 \u0445\u0432\u0430\u0442\u0430\u0435\u0442 \u0434\u0435\u043d\u0435\u0433 \u043d\u0430 \u00ab{1}\u00bb ({2}\u20ac).',
+    logPaidRent: '{0} \u043f\u043b\u0430\u0442\u0438\u0442 {1} {2}\u20ac \u0430\u0440\u0435\u043d\u0434\u044b \u0437\u0430 \u00ab{3}\u00bb.',
+    logTax: '{0}: \u043d\u0430\u043b\u043e\u0433 {1}\u20ac.',
+    logGoJail: '{0}: \u043e\u0442\u043f\u0440\u0430\u0432\u043b\u0435\u043d \u0432 \u0442\u044e\u0440\u044c\u043c\u0443!',
+    logJailTry: '{0}: \u0432 \u0442\u044e\u0440\u044c\u043c\u0435 (\u0445\u043e\u0434 {1}/3).',
+    logJailDouble: '{0}: \u0434\u0443\u0431\u043b\u044c! \u0412\u044b\u0445\u043e\u0434\u0438\u0442 \u0438\u0437 \u0442\u044e\u0440\u044c\u043c\u044b.',
+    logJailPay: '{0}: \u043f\u043b\u0430\u0442\u0438\u0442 50\u20ac \u0438 \u0432\u044b\u0445\u043e\u0434\u0438\u0442 \u0438\u0437 \u0442\u044e\u0440\u044c\u043c\u044b.',
+    logFreePark: '{0}: \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u0430\u044f \u0441\u0442\u043e\u044f\u043d\u043a\u0430.',
+    logVisitJail: '{0}: \u043f\u0440\u043e\u0441\u0442\u043e \u0433\u043e\u0441\u0442\u0438\u0442 \u0432 \u0442\u044e\u0440\u044c\u043c\u0435.',
+    logStartCell: '{0} \u043d\u0430 \u0421\u0422\u0410\u0420\u0422\u0415!',
+    logChance: '{0}: {1}',
+    logCommunity: '{0}: {1}',
+    logSellProp: '{0} \u043f\u0440\u043e\u0434\u0430\u043b \u00ab{1}\u00bb \u0437\u0430 {2}\u20ac.',
+    logEliminated: '{0} \u0431\u0430\u043d\u043a\u0440\u043e\u0442 \u0438 \u0432\u044b\u0431\u044b\u0432\u0430\u0435\u0442!',
+    logWinner: '{0} \u043f\u043e\u0431\u0435\u0436\u0434\u0430\u0435\u0442! \u0418\u0433\u0440\u0430 \u043e\u043a\u043e\u043d\u0447\u0435\u043d\u0430.',
+    logAuctionStart: '\u0410\u0443\u043a\u0446\u0438\u043e\u043d \u043d\u0430 \u00ab{0}\u00bb. \u041c\u0438\u043d. \u0441\u0442\u0430\u0432\u043a\u0430 {1}\u20ac.',
+    logAuctionBid: '{0} \u0441\u0442\u0430\u0432\u0438\u0442 {1}\u20ac.',
+    logAuctionPass: '{0} \u043f\u0430\u0441\u0443\u0435\u0442.',
+    logAuctionWon: '{0} \u0432\u044b\u0438\u0433\u0440\u044b\u0432\u0430\u0435\u0442 \u00ab{1}\u00bb \u0437\u0430 {2}\u20ac!',
+    logAuctionNone: '\u041d\u0438\u043a\u0442\u043e \u043d\u0435 \u0441\u0442\u0430\u0432\u0438\u043b. \u00ab{0}\u00bb \u043e\u0441\u0442\u0430\u0451\u0442\u0441\u044f \u0443 \u0431\u0430\u043d\u043a\u0430.',
+    logAuctionTurn: '\u0410\u0443\u043a\u0446\u0438\u043e\u043d: \u0445\u043e\u0434 {0}. \u0422\u0435\u043a\u0443\u0449\u0430\u044f \u0441\u0442\u0430\u0432\u043a\u0430: {1}\u20ac.',
+    chCards: [
+      { msg: '\u0428\u0430\u043d\u0441: \u043f\u043e\u043b\u0443\u0447\u0438\u0442\u0435 50\u20ac', fn: function(p) { p.money += 50; } },
+      { msg: '\u0428\u0430\u043d\u0441: \u0437\u0430\u043f\u043b\u0430\u0442\u0438\u0442\u0435 50\u20ac', fn: function(p) { p.money -= 50; } },
+      { msg: '\u0428\u0430\u043d\u0441: \u043d\u0430 \u0421\u0422\u0410\u0420\u0422', fn: function(p) { p.position = 0; p.money += 200; } },
+      { msg: '\u0428\u0430\u043d\u0441: \u0448\u0442\u0440\u0430\u0444 25\u20ac', fn: function(p) { p.money -= 25; } },
+      { msg: '\u0428\u0430\u043d\u0441: \u0432 \u0442\u044e\u0440\u044c\u043c\u0443!', fn: function(p) { p.position = 10; p.status = 'in_jail'; p.inJailTurns = 0; } }
+    ],
+    coCards: [
+      { msg: '\u041a\u0430\u0437\u043d\u0430: \u043f\u043e\u043b\u0443\u0447\u0438\u0442\u0435 25\u20ac', fn: function(p) { p.money += 25; } },
+      { msg: '\u041a\u0430\u0437\u043d\u0430: \u0437\u0430\u043f\u043b\u0430\u0442\u0438\u0442\u0435 40\u20ac', fn: function(p) { p.money -= 40; } },
+      { msg: '\u041a\u0430\u0437\u043d\u0430: \u043d\u0430\u0441\u043b\u0435\u0434\u0441\u0442\u0432\u043e +100\u20ac', fn: function(p) { p.money += 100; } },
+      { msg: '\u041a\u0430\u0437\u043d\u0430: \u0448\u0442\u0440\u0430\u0444 10\u20ac', fn: function(p) { p.money -= 10; } }
+    ],
+    propNames: [
+      '\u0421\u0422\u0410\u0420\u0422','\u041c\u0430\u0434\u0440\u0438\u0434','\u041e\u0431\u0449. \u043a\u0430\u0437\u043d\u0430','\u0411\u0430\u0440\u0441\u0435\u043b\u043e\u043d\u0430','\u041d\u0430\u043b\u043e\u0433 200\u20ac','Gare de Lyon',
+      '\u0420\u0438\u043c','\u0428\u0430\u043d\u0441','\u0412\u0435\u043d\u0435\u0446\u0438\u044f','\u041c\u0438\u043b\u0430\u043d','\u0422\u042e\u0420\u042c\u041c\u0410','\u0411\u0435\u0440\u043b\u0438\u043d','\u042d\u043b\u0435\u043a\u0442\u0440\u043e\u0441\u0435\u0442\u044c','\u0413\u0430\u043c\u0431\u0443\u0440\u0433',
+      '\u041c\u044e\u043d\u0445\u0435\u043d','Frankfurt Hbf','\u041f\u0440\u0430\u0433\u0430','\u041e\u0431\u0449. \u043a\u0430\u0437\u043d\u0430','\u0412\u0435\u043d\u0430','\u0411\u0443\u0434\u0430\u043f\u0435\u0448\u0442',
+      '\u0421\u0422\u041e\u042f\u041d\u041a\u0410','\u0410\u043c\u0441\u0442\u0435\u0440\u0434\u0430\u043c','\u0428\u0430\u043d\u0441','\u0411\u0440\u044e\u0441\u0441\u0435\u043b\u044c','\u041f\u0430\u0440\u0438\u0436','Gare du Nord',
+      '\u041b\u043e\u043d\u0434\u043e\u043d','\u0414\u0443\u0431\u043b\u0438\u043d','\u0412\u043e\u0434\u043e\u043a\u0430\u043d\u0430\u043b','\u042d\u0434\u0438\u043d\u0431\u0443\u0440\u0433','\u0412 \u0422\u042e\u0420\u042c\u041c\u0423!','\u0421\u0442\u043e\u043a\u0433\u043e\u043b\u044c\u043c',
+      '\u041a\u043e\u043f\u0435\u043d\u0433\u0430\u0433\u0435\u043d','\u041e\u0431\u0449. \u043a\u0430\u0437\u043d\u0430','\u0425\u0435\u043b\u044c\u0441\u0438\u043d\u043a\u0438','Stockholm C','\u0428\u0430\u043d\u0441','\u0410\u0444\u0438\u043d\u044b',
+      '\u041d\u0430\u043b\u043e\u0433 100\u20ac','\u041c\u043e\u0441\u043a\u0432\u0430'
+    ]
+  },
+  fr: {
+    title: 'EuroMonopoly',
+    roll: 'Lancer les dés', buy: 'Acheter', auction: 'Enchère', skip: 'Passer',
+    sellProp: 'Vendre', payJail: 'Payer 50€', rollDoubles: 'Doubler',
+    newGame: 'Nouvelle partie', bid: 'Enchérir', pass: 'Passer', auctionLabel: 'Votre enchère (€):',
+    thPlayer: 'Joueur', thMoney: 'Argent', thPos: 'Position', thProps: 'Propriétés', thStatus: 'Statut',
+    stFree: 'libre', stJail: 'en prison', stElim: 'éliminé',
+    logStart: 'Partie commencée! Cliquez sur «Lancer les dés».',
+    logRenamed: '{0} est maintenant {1}',
+    logRolled: '{0} a lancé {1}+{2} = {3}. {4} → {5}.',
+    logDoubles: '{0}: double! Relancez.',
+    logDoublesJail: '{0}: 3 doubles de suite! En prison!',
+    logPassStart: '{0} passe DÉPART, +200€',
+    logBought: '{0} a acheté «{1}» pour {2}€.',
+    logCantBuy: '{0}: pas assez d’argent pour «{1}» ({2}€).',
+    logPaidRent: '{0} paie à {1} {2}€ de loyer pour «{3}».',
+    logTax: '{0}: taxe {1}€.',
+    logGoJail: '{0}: envoyé en prison!',
+    logJailTry: '{0}: en prison (tour {1}/3).',
+    logJailDouble: '{0}: double! Sort de prison.',
+    logJailPay: '{0}: paie 50€ et sort de prison.',
+    logFreePark: '{0}: parking gratuit.',
+    logVisitJail: '{0}: visite la prison.',
+    logStartCell: '{0} sur DÉPART!',
+    logChance: '{0}: {1}',
+    logCommunity: '{0}: {1}',
+    logSellProp: '{0} a vendu «{1}» pour {2}€.',
+    logEliminated: '{0} fait faillite et est éliminé!',
+    logWinner: '{0} gagne! Partie terminée.',
+    logAuctionStart: 'Enchère pour «{0}». Enchère min. {1}€.',
+    logAuctionBid: '{0} enchérit {1}€.',
+    logAuctionPass: '{0} passe.',
+    logAuctionWon: '{0} remporte «{1}» pour {2}€!',
+    logAuctionNone: 'Personne n’a enchéri. «{0}» reste à la banque.',
+    logAuctionTurn: 'Enchère: tour de {0}. Enchère actuelle: {1}€.',
+    chCards: [
+      { msg: 'Chance: recevez 50€', fn: function(p) { p.money += 50; } },
+      { msg: 'Chance: payez 50€', fn: function(p) { p.money -= 50; } },
+      { msg: 'Chance: allez à DÉPART', fn: function(p) { p.position = 0; p.money += 200; } },
+      { msg: 'Chance: amende 25€', fn: function(p) { p.money -= 25; } },
+      { msg: 'Chance: en prison!', fn: function(p) { p.position = 10; p.status = 'in_jail'; p.inJailTurns = 0; } }
+    ],
+    coCards: [
+      { msg: 'Caisse: recevez 25€', fn: function(p) { p.money += 25; } },
+      { msg: 'Caisse: payez 40€', fn: function(p) { p.money -= 40; } },
+      { msg: 'Caisse: héritage +100€', fn: function(p) { p.money += 100; } },
+      { msg: 'Caisse: amende 10€', fn: function(p) { p.money -= 10; } }
+    ],
+    propNames: [
+      'DÉPART','Madrid','Caisse commune','Barcelone','Taxe 200€','Gare de Lyon',
+      'Rome','Chance','Venise','Milan','PRISON','Berlin','Compagnie d’électricité','Hambourg',
+      'Munich','Francfort','Prague','Caisse commune','Vienne','Budapest',
+      'PARKING GRATUIT','Amsterdam','Chance','Bruxelles','Paris','Gare du Nord',
+      'Londres','Dublin','Compagnie des eaux','Édimbourg','EN PRISON!','Stockholm',
+      'Copenhague','Caisse commune','Helsinki','Gare de Stockholm','Chance','Athènes',
+      'Taxe 100€','Moscou'
+    ]
+  },
+  it: {
+    title: 'EuroMonopoly',
+    roll: 'Tira i dadi', buy: 'Compra', auction: 'Asta', skip: 'Salta',
+    sellProp: 'Vendi', payJail: 'Paga 50€', rollDoubles: 'Tira per doppio',
+    newGame: 'Nuova partita', bid: 'Offerta', pass: 'Passa', auctionLabel: 'La tua offerta (€):',
+    thPlayer: 'Giocatore', thMoney: 'Soldi', thPos: 'Posizione', thProps: 'Proprietà', thStatus: 'Stato',
+    stFree: 'libero', stJail: 'in prigione', stElim: 'eliminato',
+    logStart: 'Partita iniziata! Clicca «Tira i dadi».',
+    logRenamed: '{0} ora è {1}',
+    logRolled: '{0} ha tirato {1}+{2} = {3}. {4} → {5}.',
+    logDoubles: '{0}: doppio! Tira ancora.',
+    logDoublesJail: '{0}: 3 doppi di fila! In prigione!',
+    logPassStart: '{0} passa PARTENZA, +200€',
+    logBought: '{0} ha comprato «{1}» per {2}€.',
+    logCantBuy: '{0}: soldi insufficienti per «{1}» ({2}€).',
+    logPaidRent: '{0} paga {1} {2}€ di affitto per «{3}».',
+    logTax: '{0}: tassa {1}€.',
+    logGoJail: '{0}: mandato in prigione!',
+    logJailTry: '{0}: in prigione (turno {1}/3).',
+    logJailDouble: '{0}: doppio! Esce di prigione.',
+    logJailPay: '{0}: paga 50€ ed esce di prigione.',
+    logFreePark: '{0}: parcheggio gratuito.',
+    logVisitJail: '{0}: visita la prigione.',
+    logStartCell: '{0} su PARTENZA!',
+    logChance: '{0}: {1}',
+    logCommunity: '{0}: {1}',
+    logSellProp: '{0} ha venduto «{1}» per {2}€.',
+    logEliminated: '{0} fallisce ed è eliminato!',
+    logWinner: '{0} vince! Partita finita.',
+    logAuctionStart: 'Asta per «{0}». Offerta min. {1}€.',
+    logAuctionBid: '{0} offre {1}€.',
+    logAuctionPass: '{0} passa.',
+    logAuctionWon: '{0} vince «{1}» per {2}€!',
+    logAuctionNone: 'Nessuno ha offerto. «{0}» resta alla banca.',
+    logAuctionTurn: 'Asta: turno di {0}. Offerta attuale: {1}€.',
+    chCards: [
+      { msg: 'Probabilità: ricevi 50€', fn: function(p) { p.money += 50; } },
+      { msg: 'Probabilità: paga 50€', fn: function(p) { p.money -= 50; } },
+      { msg: 'Probabilità: vai alla PARTENZA', fn: function(p) { p.position = 0; p.money += 200; } },
+      { msg: 'Probabilità: multa 25€', fn: function(p) { p.money -= 25; } },
+      { msg: 'Probabilità: in prigione!', fn: function(p) { p.position = 10; p.status = 'in_jail'; p.inJailTurns = 0; } }
+    ],
+    coCards: [
+      { msg: 'Imprevisti: ricevi 25€', fn: function(p) { p.money += 25; } },
+      { msg: 'Imprevisti: paga 40€', fn: function(p) { p.money -= 40; } },
+      { msg: 'Imprevisti: eredità +100€', fn: function(p) { p.money += 100; } },
+      { msg: 'Imprevisti: multa 10€', fn: function(p) { p.money -= 10; } }
+    ],
+    propNames: [
+      'PARTENZA','Madrid','Imprevisti','Barcellona','Tassa 200€','Gare de Lyon',
+      'Roma','Probabilità','Venezia','Milano','PRIGIONE','Berlino','Società elettrica','Amburgo',
+      'Monaco','Francoforte','Praga','Imprevisti','Vienna','Budapest',
+      'PARCHEGGIO GRATUITO','Amsterdam','Probabilità','Bruxelles','Parigi','Gare du Nord',
+      'Londra','Dublino','Società idrica','Edimburgo','IN PRIGIONE!','Stoccolma',
+      'Copenaghen','Imprevisti','Helsinki','Stazione di Stoccolma','Probabilità','Atene',
+      'Tassa 100€','Mosca'
+    ]
+  },
+  de: {
+    title: 'EuroMonopoly',
+    roll: 'Würfeln', buy: 'Kaufen', auction: 'Auktion', skip: 'Überspringen',
+    sellProp: 'Verkaufen', payJail: '50€ zahlen', rollDoubles: 'Pasch würfeln',
+    newGame: 'Neues Spiel', bid: 'Bieten', pass: 'Passen', auctionLabel: 'Ihr Gebot (€):',
+    thPlayer: 'Spieler', thMoney: 'Geld', thPos: 'Position', thProps: 'Besitztümer', thStatus: 'Status',
+    stFree: 'frei', stJail: 'im Gefängnis', stElim: 'ausgeschieden',
+    logStart: 'Spiel gestartet! Klicken Sie «Würfeln».',
+    logRenamed: '{0} heißt jetzt {1}',
+    logRolled: '{0} würfelte {1}+{2} = {3}. {4} → {5}.',
+    logDoubles: '{0}: Pasch! Nochmal würfeln.',
+    logDoublesJail: '{0}: 3 Pasche hintereinander! Ins Gefängnis!',
+    logPassStart: '{0} passiert START, +200€',
+    logBought: '{0} kaufte «{1}» für {2}€.',
+    logCantBuy: '{0}: nicht genug Geld für «{1}» ({2}€).',
+    logPaidRent: '{0} zahlt {1} {2}€ Miete für «{3}».',
+    logTax: '{0}: Steuer {1}€.',
+    logGoJail: '{0}: ins Gefängnis geschickt!',
+    logJailTry: '{0}: im Gefängnis (Runde {1}/3).',
+    logJailDouble: '{0}: Pasch! Aus dem Gefängnis.',
+    logJailPay: '{0}: zahlt 50€ und verlässt das Gefängnis.',
+    logFreePark: '{0}: kostenloses Parken.',
+    logVisitJail: '{0}: besucht das Gefängnis.',
+    logStartCell: '{0} auf START!',
+    logChance: '{0}: {1}',
+    logCommunity: '{0}: {1}',
+    logSellProp: '{0} verkaufte «{1}» für {2}€.',
+    logEliminated: '{0} geht bankrott und scheidet aus!',
+    logWinner: '{0} gewinnt! Spiel vorbei.',
+    logAuctionStart: 'Auktion für «{0}». Mindestgebot {1}€.',
+    logAuctionBid: '{0} bietet {1}€.',
+    logAuctionPass: '{0} passt.',
+    logAuctionWon: '{0} gewinnt «{1}» für {2}€!',
+    logAuctionNone: 'Niemand hat geboten. «{0}» bleibt bei der Bank.',
+    logAuctionTurn: 'Auktion: Zug von {0}. Aktuelles Gebot: {1}€.',
+    chCards: [
+      { msg: 'Chance: erhalten Sie 50€', fn: function(p) { p.money += 50; } },
+      { msg: 'Chance: zahlen Sie 50€', fn: function(p) { p.money -= 50; } },
+      { msg: 'Chance: gehen Sie zum START', fn: function(p) { p.position = 0; p.money += 200; } },
+      { msg: 'Chance: Strafe 25€', fn: function(p) { p.money -= 25; } },
+      { msg: 'Chance: ins Gefängnis!', fn: function(p) { p.position = 10; p.status = 'in_jail'; p.inJailTurns = 0; } }
+    ],
+    coCards: [
+      { msg: 'Gemeinschaftskasse: erhalten Sie 25€', fn: function(p) { p.money += 25; } },
+      { msg: 'Gemeinschaftskasse: zahlen Sie 40€', fn: function(p) { p.money -= 40; } },
+      { msg: 'Gemeinschaftskasse: Erbschaft +100€', fn: function(p) { p.money += 100; } },
+      { msg: 'Gemeinschaftskasse: Strafe 10€', fn: function(p) { p.money -= 10; } }
+    ],
+    propNames: [
+      'START','Madrid','Gemeinschaftskasse','Barcelona','Steuer 200€','Gare de Lyon',
+      'Rom','Chance','Venedig','Mailand','GEFÄNGNIS','Berlin','Elektrizitätswerk','Hamburg',
+      'München','Frankfurt','Prag','Gemeinschaftskasse','Wien','Budapest',
+      'KOSTENLOSES PARKEN','Amsterdam','Chance','Brüssel','Paris','Gare du Nord',
+      'London','Dublin','Wasserwerk','Edinburgh','INS GEFÄNGNIS!','Stockholm',
+      'Kopenhagen','Gemeinschaftskasse','Helsinki','Stockholm C','Chance','Athen',
+      'Steuer 100€','Moskau'
+    ]
+  }
+};
+
+var lang = 'en';
+function T() { return I18N[lang]; }
+function t(key) { return T()[key]; }
+function tf(key) {
+  var s = T()[key];
+  for (var i = 1; i < arguments.length; i++) {
+    s = s.replace('{' + (i - 1) + '}', arguments[i]);
+  }
+  return s;
+}
+
+/* ========== GAME STATE ========== */
+var START_MONEY = 1500;
+var PLAYER_COLORS = ['#e53935', '#1e88e5'];
+var CT = {
+  START: 'start', PROPERTY: 'property', STATION: 'station',
+  UTILITY: 'utility', CHANCE: 'chance', TAX: 'tax',
+  JAIL: 'jail', GO_TO_JAIL: 'go_to_jail', FREE_PARKING: 'free_parking', COMMUNITY: 'community'
+};
+var boardData = [
+  { type: CT.START },
+  { type: CT.PROPERTY, price: 60, group: 'brown', rent: 4 },
+  { type: CT.COMMUNITY },
+  { type: CT.PROPERTY, price: 60, group: 'brown', rent: 4 },
+  { type: CT.TAX, amount: 200 },
+  { type: CT.STATION, price: 200, rent: 25 },
+  { type: CT.PROPERTY, price: 100, group: 'lightblue', rent: 6 },
+  { type: CT.CHANCE },
+  { type: CT.PROPERTY, price: 100, group: 'lightblue', rent: 6 },
+  { type: CT.PROPERTY, price: 120, group: 'lightblue', rent: 8 },
+  { type: CT.JAIL },
+  { type: CT.PROPERTY, price: 140, group: 'pink', rent: 10 },
+  { type: CT.UTILITY, price: 150, rent: 0 },
+  { type: CT.PROPERTY, price: 140, group: 'pink', rent: 10 },
+  { type: CT.PROPERTY, price: 160, group: 'pink', rent: 12 },
+  { type: CT.STATION, price: 200, rent: 25 },
+  { type: CT.PROPERTY, price: 180, group: 'orange', rent: 14 },
+  { type: CT.COMMUNITY },
+  { type: CT.PROPERTY, price: 180, group: 'orange', rent: 14 },
+  { type: CT.PROPERTY, price: 200, group: 'orange', rent: 16 },
+  { type: CT.FREE_PARKING },
+  { type: CT.PROPERTY, price: 220, group: 'red', rent: 18 },
+  { type: CT.CHANCE },
+  { type: CT.PROPERTY, price: 220, group: 'red', rent: 18 },
+  { type: CT.PROPERTY, price: 240, group: 'red', rent: 20 },
+  { type: CT.STATION, price: 200, rent: 25 },
+  { type: CT.PROPERTY, price: 260, group: 'yellow', rent: 22 },
+  { type: CT.PROPERTY, price: 260, group: 'yellow', rent: 22 },
+  { type: CT.UTILITY, price: 150, rent: 0 },
+  { type: CT.PROPERTY, price: 280, group: 'yellow', rent: 24 },
+  { type: CT.GO_TO_JAIL },
+  { type: CT.PROPERTY, price: 300, group: 'green', rent: 26 },
+  { type: CT.PROPERTY, price: 300, group: 'green', rent: 26 },
+  { type: CT.COMMUNITY },
+  { type: CT.PROPERTY, price: 320, group: 'green', rent: 28 },
+  { type: CT.STATION, price: 200, rent: 25 },
+  { type: CT.CHANCE },
+  { type: CT.PROPERTY, price: 350, group: 'blue', rent: 35 },
+  { type: CT.TAX, amount: 100 },
+  { type: CT.PROPERTY, price: 400, group: 'blue', rent: 50 }
+];
+
+function cellName(i) { return t('propNames')[i]; }
+
+var players = [];
+var currentPlayer = 0;
+var lastDice = [0, 0];
+var doublesCount = 0;
+var ownership = {};
+var gameOver = false;
+var pendingAction = null;
+var auctionState = null;
+var boardBuilt = false;
+
+/* ========== GRID POSITIONS ========== */
+var cellPositions = [];
+for (var c = 10; c >= 0; c--) cellPositions.push({ row: 10, col: c });
+for (var r = 9; r >= 1; r--) cellPositions.push({ row: r, col: 0 });
+for (var c2 = 0; c2 <= 10; c2++) cellPositions.push({ row: 0, col: c2 });
+for (var r2 = 1; r2 <= 9; r2++) cellPositions.push({ row: r2, col: 10 });
+
+/* ========== DOM REFS (set after build) ========== */
+var boardEl = document.getElementById('board');
+
+var logBox = null;
+var diceBox = null;
+var btnRow = null;
+var auctionArea = null;
+var auctionLabel = null;
+var auctionTitle = null;
+var auctionInfo = null;
+var auctionBidInput = null;
+var bidBtn = null;
+var passBtn = null;
+
+/* ========== INIT ========== */
+function initGame() {
+  var p1n = { en: 'Player 1', fr: 'Joueur 1', it: 'Giocatore 1', de: 'Spieler 1', ru: '\u0418\u0433\u0440\u043e\u043a 1' };
+  var p2n = { en: 'Player 2', fr: 'Joueur 2', it: 'Giocatore 2', de: 'Spieler 2', ru: '\u0418\u0433\u0440\u043e\u043a 2' };
+  players = [
+    { id: 0, name: p1n[lang], money: START_MONEY, position: 0, owned: [], status: 'free', color: PLAYER_COLORS[0], inJailTurns: 0 },
+    { id: 1, name: p2n[lang], money: START_MONEY, position: 0, owned: [], status: 'free', color: PLAYER_COLORS[1], inJailTurns: 0 }
+  ];
+  currentPlayer = 0;
+  lastDice = [0, 0];
+  doublesCount = 0;
+  ownership = {};
+  gameOver = false;
+  pendingAction = null;
+  auctionState = null;
+  buildBoard();
+  renderPlayers();
+  renderControls();
+  if (logBox) logBox.innerHTML = '';
+  logMsg(t('logStart'));
+}
+
+/* ========== BUILD BOARD (once per init) ========== */
+function buildBoard() {
+  boardEl.innerHTML = '';
+  for (var i = 0; i < 40; i++) {
+    var cell = boardData[i];
+    var pos = cellPositions[i];
+    var div = document.createElement('div');
+    div.className = 'cell';
+    div.style.gridRow = (pos.row + 1);
+    div.style.gridColumn = (pos.col + 1);
+    div.dataset.index = i;
+    if (i === 0 || i === 10 || i === 20 || i === 30) {
+      div.classList.add('corner');
+      div.innerHTML = '<div>' + cellName(i) + '</div>';
+    } else {
+      if (cell.group) div.classList.add('c-' + cell.group);
+      if (cell.type === CT.STATION) div.classList.add('station');
+      if (cell.type === CT.UTILITY) div.classList.add('utility');
+      if (cell.type === CT.CHANCE || cell.type === CT.COMMUNITY) div.classList.add('chance');
+      if (cell.type === CT.TAX) div.classList.add('tax');
+      var html = '';
+      if (cell.group) html += '<div class="color-bar"></div>';
+      html += '<div class="name">' + cellName(i) + '</div>';
+      if (cell.price) html += '<div class="price">' + cell.price + '&euro;</div>';
+      div.innerHTML = html;
+    }
+    var tokensDiv = document.createElement('div');
+    tokensDiv.className = 'tokens';
+    tokensDiv.id = 'tokens-' + i;
+    div.appendChild(tokensDiv);
+    boardEl.appendChild(div);
+  }
+  // Center area with log + dice + buttons
+  var center = document.createElement('div');
+  center.id = 'center-area';
+  center.style.gridRow = '2 / 11';
+  center.style.gridColumn = '2 / 11';
+  center.innerHTML =
+    '<div id="log"></div>' +
+    '<div id="dice-area">' +
+      '<div id="dice-display"></div>' +
+      '<div id="btn-row"></div>' +
+    '</div>' +
+    '<div id="auction-area">' +
+      '<div class="auction-title" id="auction-title"></div>' +
+      '<div class="auction-info" id="auction-info"></div>' +
+      '<label id="auction-label"></label>' +
+      '<input type="number" id="auction-bid" min="0">' +
+      '<div id="auction-btn-row">' +
+        '<button class="game-btn auction" id="bid-btn"></button>' +
+        '<button class="game-btn" id="pass-btn"></button>' +
+      '</div>' +
+    '</div>';
+  boardEl.appendChild(center);
+  // Set refs
+  logBox = center.querySelector('#log');
+  diceBox = center.querySelector('#dice-display');
+  btnRow = center.querySelector('#btn-row');
+  auctionArea = center.querySelector('#auction-area');
+  auctionLabel = center.querySelector('#auction-label');
+  auctionTitle = center.querySelector('#auction-title');
+  auctionInfo = center.querySelector('#auction-info');
+  auctionBidInput = center.querySelector('#auction-bid');
+  bidBtn = center.querySelector('#bid-btn');
+  passBtn = center.querySelector('#pass-btn');
+  boardBuilt = true;
+  renderDice();
+  updateTokens();
+  updateOwnershipDots();
+}
+
+/* ========== UPDATE CELL OWNERSHIP DOTS ========== */
+function updateOwnershipDots() {
+  for (var i = 0; i < 40; i++) {
+    var cellDiv = boardEl.querySelector('[data-index="' + i + '"]');
+    if (!cellDiv) continue;
+    var oldDot = cellDiv.querySelector('.owner-dot');
+    if (oldDot) oldDot.remove();
+    if (ownership[i] !== undefined) {
+      var own = players[ownership[i]];
+      if (own) {
+        var dot = document.createElement('div');
+        dot.className = 'owner-dot';
+        dot.style.cssText = 'position:absolute;top:1px;left:1px;width:6px;height:6px;border-radius:50%;background:' + own.color + ';z-index:5';
+        cellDiv.appendChild(dot);
+      }
+    }
+  }
+}
+
+/* ========== TOKENS ========== */
+function updateTokens() {
+  for (var i = 0; i < 40; i++) {
+    var td = document.getElementById('tokens-' + i);
+    if (td) td.innerHTML = '';
+  }
+  players.forEach(function(p) {
+    if (p.status === 'eliminated') return;
+    var td = document.getElementById('tokens-' + p.position);
+    if (td) {
+      var tok = document.createElement('div');
+      tok.className = 'token';
+      tok.style.background = p.color;
+      tok.title = p.name;
+      td.appendChild(tok);
+    }
+  });
+  var oldDots = document.querySelectorAll('.current-turn');
+  oldDots.forEach(function(el) { el.remove(); });
+  var cp = players[currentPlayer];
+  if (cp && cp.status !== 'eliminated') {
+    var cellDiv = boardEl.querySelector('[data-index="' + cp.position + '"]');
+    if (cellDiv) {
+      var dot = document.createElement('div');
+      dot.className = 'current-turn';
+      cellDiv.appendChild(dot);
+    }
+  }
+}
+
+/* ========== PLAYERS TABLE ========== */
+function renderPlayers() {
+  renderPropertiesDetail();
+}
+
+function renderPropertiesDetail() {
+  var container = document.getElementById('properties-detail');
+  if (!container) return;
+  container.innerHTML = '';
+  var groupColors = {
+    brown: '#8b4513', lightblue: '#87ceeb', pink: '#d4499a', orange: '#ff8c00',
+    red: '#e53935', yellow: '#fdd835', green: '#43a047', blue: '#1e88e5'
+  };
+  players.forEach(function(p) {
+    var block = document.createElement('div');
+    block.className = 'prop-block';
+    var header = document.createElement('div');
+    header.className = 'prop-block-header';
+    var statusText = p.status === 'eliminated' ? t('stElim') : (p.status === 'in_jail' ? t('stJail') : t('stFree'));
+    var nameInput = '<input class="prop-name-input" type="text" value="' + p.name + '" data-pid="' + p.id + '">';
+    header.innerHTML = '<span class="color-dot" style="background:' + p.color + '"></span>' +
+      nameInput +
+      '<span style="margin-left:auto">' + p.money + ' \u20ac</span>' +
+      '<span style="opacity:0.7">(' + statusText + ')</span>';
+    if (p.status === 'eliminated') block.style.opacity = '0.45';
+    if (p === players[currentPlayer] && !gameOver) block.style.boxShadow = '0 0 0 2px var(--row-current)';
+    block.appendChild(header);
+    var body = document.createElement('div');
+    body.className = 'prop-block-body';
+    if (p.owned.length === 0) {
+      body.innerHTML = '<span class="prop-empty">\u2014</span>';
+    } else {
+      p.owned.forEach(function(idx) {
+        var card = document.createElement('div');
+        card.className = 'prop-card';
+        var cell = boardData[idx];
+        var colorBar = cell.group ? '<div class="prop-color" style="background:' + groupColors[cell.group] + '"></div>' : '<div class="prop-color" style="background:#999"></div>';
+        card.innerHTML = colorBar + '<span class="prop-name">' + cellName(idx) + '</span>';
+        body.appendChild(card);
+      });
+    }
+    block.appendChild(body);
+    container.appendChild(block);
+  });
+  var inputs = container.querySelectorAll('.prop-name-input');
+  inputs.forEach(function(inp) {
+    inp.addEventListener('change', function() {
+      var pid = parseInt(this.dataset.pid);
+      var p = players[pid];
+      var oldName = p.name;
+      p.name = this.value || ('Player ' + (pid + 1));
+      if (p.name !== oldName) {
+        logMsg(tf('logRenamed', oldName, p.name));
+      }
+      renderPropertiesDetail();
+      updateTokens();
+    });
+  });
+}
+
+/* ========== DICE ========== */
+function renderDice() {
+  if (!diceBox) return;
+  if (lastDice[0] === 0) { diceBox.innerHTML = ''; return; }
+  diceBox.innerHTML = '';
+  diceBox.appendChild(makeDie(lastDice[0]));
+  diceBox.appendChild(makeDie(lastDice[1]));
+}
+
+function makeDie(val) {
+  var die = document.createElement('div');
+  die.className = 'die';
+  var pips = {
+    1: [0,0,0,0,1,0,0,0,0],
+    2: [1,0,0,0,0,0,0,0,1],
+    3: [1,0,0,0,1,0,0,0,1],
+    4: [1,0,1,0,0,0,1,0,1],
+    5: [1,0,1,0,1,0,1,0,1],
+    6: [1,0,1,1,0,1,1,0,1]
+  };
+  var arr = pips[val] || pips[1];
+  for (var i = 0; i < 9; i++) {
+    var pip = document.createElement('div');
+    pip.className = arr[i] ? 'pip' : 'pip empty';
+    die.appendChild(pip);
+  }
+  return die;
+}
+
+/* ========== CONTROLS ========== */
+function renderControls() {
+  if (!btnRow) return;
+  btnRow.innerHTML = '';
+  auctionArea.classList.remove('visible');
+  var centerEl = document.getElementById('center-area');
+  if (centerEl) centerEl.classList.remove('auction-mode');
+  if (gameOver) {
+    var ngBtn = document.createElement('button');
+    ngBtn.className = 'game-btn';
+    ngBtn.textContent = t('newGame');
+    ngBtn.onclick = initGame;
+    btnRow.appendChild(ngBtn);
+    return;
+  }
+  var cp = players[currentPlayer];
+  if (cp.status === 'eliminated') { nextPlayer(); renderPlayers(); updateTokens(); renderControls(); return; }
+
+  if (pendingAction === 'buy') {
+    var cell = boardData[cp.position];
+    var buyBtn = document.createElement('button');
+    buyBtn.className = 'game-btn action';
+    buyBtn.textContent = t('buy') + ' ' + cellName(cp.position) + ' (' + cell.price + '\u20ac)';
+    buyBtn.disabled = cp.money < cell.price;
+    buyBtn.onclick = doBuy;
+    btnRow.appendChild(buyBtn);
+
+    var auctBtn = document.createElement('button');
+    auctBtn.className = 'game-btn auction';
+    auctBtn.textContent = t('auction');
+    auctBtn.onclick = startAuction;
+    btnRow.appendChild(auctBtn);
+
+    var skipBtn = document.createElement('button');
+    skipBtn.className = 'game-btn';
+    skipBtn.textContent = t('skip');
+    skipBtn.onclick = function() { pendingAction = null; endTurn(); };
+    btnRow.appendChild(skipBtn);
+    return;
+  }
+
+  if (pendingAction === 'auction') {
+    renderAuctionUI();
+    return;
+  }
+
+  if (pendingAction === 'jail') {
+    var payBtn = document.createElement('button');
+    payBtn.className = 'game-btn action';
+    payBtn.textContent = t('payJail');
+    payBtn.disabled = cp.money < 50;
+    payBtn.onclick = payJailFine;
+    btnRow.appendChild(payBtn);
+
+    var rollBtn = document.createElement('button');
+    rollBtn.className = 'game-btn';
+    rollBtn.textContent = t('rollDoubles');
+    rollBtn.onclick = rollDice;
+    btnRow.appendChild(rollBtn);
+    return;
+  }
+
+  // Default: roll + sell
+  var rollBtn2 = document.createElement('button');
+  rollBtn2.className = 'game-btn';
+  rollBtn2.textContent = t('roll');
+  rollBtn2.onclick = rollDice;
+  btnRow.appendChild(rollBtn2);
+
+  if (cp.owned.length > 0) {
+    var sellBtn = document.createElement('button');
+    sellBtn.className = 'game-btn sell';
+    sellBtn.textContent = t('sellProp');
+    sellBtn.onclick = openSellMenu;
+    btnRow.appendChild(sellBtn);
+  }
+}
+
+/* ========== SELL ========== */
+function openSellMenu() {
+  var cp = players[currentPlayer];
+  if (cp.owned.length === 0) return;
+  // Sell cheapest property for half price
+  var cheapest = cp.owned[0];
+  for (var k = 0; k < cp.owned.length; k++) {
+    if (boardData[cp.owned[k]].price < boardData[cheapest].price) cheapest = cp.owned[k];
+  }
+  sellProperty(cp, cheapest);
+}
+
+function sellProperty(p, idx) {
+  var half = Math.floor(boardData[idx].price / 2);
+  p.money += half;
+  p.owned = p.owned.filter(function(i) { return i !== idx; });
+  delete ownership[idx];
+  logMsg(tf('logSellProp', p.name, cellName(idx), half));
+  renderPlayers();
+  updateOwnershipDots();
+  updateTokens();
+  if (p.money >= 0 && p.status === 'debtor') {
+    p.status = 'free';
+    renderPlayers();
+  }
+}
+
+/* ========== ROLL DICE ========== */
+function rollDice() {
+  if (gameOver) return;
+  var cp = players[currentPlayer];
+  if (cp.status === 'eliminated') return;
+  pendingAction = null;
+
+  var d1 = Math.floor(Math.random() * 6) + 1;
+  var d2 = Math.floor(Math.random() * 6) + 1;
+  lastDice = [d1, d2];
+  renderDice();
+  var diceEls = diceBox.querySelectorAll('.die');
+  diceEls.forEach(function(d) { d.classList.add('rolling'); });
+  setTimeout(function() {
+    diceEls.forEach(function(d) { d.classList.remove('rolling'); });
+  }, 400);
+
+  var total = d1 + d2;
+  var isDouble = d1 === d2;
+  var oldPos = cp.position;
+
+  if (cp.status === 'in_jail') {
+    if (isDouble) {
+      cp.status = 'free';
+      cp.inJailTurns = 0;
+      logMsg(tf('logJailDouble', cp.name));
+    } else {
+      cp.inJailTurns++;
+      if (cp.inJailTurns >= 3) {
+        cp.money -= 50;
+        cp.status = 'free';
+        cp.inJailTurns = 0;
+        logMsg(tf('logJailPay', cp.name));
+      } else {
+        logMsg(tf('logJailTry', cp.name, cp.inJailTurns));
+        nextPlayer();
+        renderPlayers(); updateTokens(); renderControls();
+        return;
+      }
+    }
+  }
+
+  if (isDouble) {
+    doublesCount++;
+    if (doublesCount >= 3) {
+      cp.position = 10;
+      cp.status = 'in_jail';
+      cp.inJailTurns = 0;
+      doublesCount = 0;
+      logMsg(tf('logDoublesJail', cp.name));
+      renderPlayers(); updateTokens(); renderControls();
+      return;
+    }
+  } else {
+    doublesCount = 0;
+  }
+
+  cp.position = (cp.position + total) % 40;
+  if (oldPos + total >= 40) {
+    cp.money += 200;
+    logMsg(tf('logPassStart', cp.name));
+  }
+
+  logMsg(tf('logRolled', cp.name, d1, d2, total, cellName(oldPos), cellName(cp.position)));
+  handleLanding(cp);
+  renderPlayers(); updateTokens();
+
+  if (pendingAction) { renderControls(); return; }
+
+  if (isDouble && !gameOver) {
+    logMsg(tf('logDoubles', cp.name));
+    renderControls();
+  } else {
+    endTurn();
+  }
+}
+
+/* ========== LANDING ========== */
+function handleLanding(p) {
+  var i = p.position;
+  var cell = boardData[i];
+
+  if (cell.type === CT.PROPERTY || cell.type === CT.STATION || cell.type === CT.UTILITY) {
+    var owner = ownership[i];
+    if (owner === undefined) {
+      pendingAction = 'buy';
+    } else if (owner !== p.id && players[owner].status !== 'eliminated') {
+      var rent = cell.rent || 0;
+      if (cell.type === CT.UTILITY) {
+        rent = lastDice[0] * lastDice[1] * 4;
+      }
+      if (cell.type === CT.PROPERTY) {
+        var groupIndices = [];
+        for (var bi = 0; bi < 40; bi++) {
+          if (boardData[bi].group === cell.group) groupIndices.push(bi);
+        }
+        var allMine = groupIndices.every(function(gi) { return ownership[gi] === owner; });
+        if (allMine) rent *= 2;
+      }
+      p.money -= rent;
+      players[owner].money += rent;
+      logMsg(tf('logPaidRent', p.name, players[owner].name, rent, cellName(i)));
+      checkBankruptcy(p);
+    }
+  } else if (cell.type === CT.TAX) {
+    p.money -= cell.amount;
+    logMsg(tf('logTax', p.name, cell.amount));
+    checkBankruptcy(p);
+  } else if (cell.type === CT.GO_TO_JAIL) {
+    p.position = 10;
+    p.status = 'in_jail';
+    p.inJailTurns = 0;
+    logMsg(tf('logGoJail', p.name));
+  } else if (cell.type === CT.CHANCE) {
+    var cards = T().chCards;
+    var card = cards[Math.floor(Math.random() * cards.length)];
+    card.fn(p);
+    logMsg(tf('logChance', p.name, card.msg));
+    if (p.position === 10 && p.status === 'in_jail') {
+      updateTokens();
+    }
+    checkBankruptcy(p);
+  } else if (cell.type === CT.COMMUNITY) {
+    var cards2 = T().coCards;
+    var card2 = cards2[Math.floor(Math.random() * cards2.length)];
+    card2.fn(p);
+    logMsg(tf('logCommunity', p.name, card2.msg));
+    checkBankruptcy(p);
+  } else if (cell.type === CT.START) {
+    logMsg(tf('logStartCell', p.name));
+  } else if (cell.type === CT.FREE_PARKING) {
+    logMsg(tf('logFreePark', p.name));
+  } else if (cell.type === CT.JAIL) {
+    logMsg(tf('logVisitJail', p.name));
+  }
+}
+
+/* ========== BUY ========== */
+function doBuy() {
+  var cp = players[currentPlayer];
+  var cell = boardData[cp.position];
+  if (cp.money >= cell.price) {
+    cp.money -= cell.price;
+    ownership[cp.position] = cp.id;
+    cp.owned.push(cp.position);
+    logMsg(tf('logBought', cp.name, cellName(cp.position), cell.price));
+    pendingAction = null;
+    renderPlayers(); updateOwnershipDots(); updateTokens();
+    if (lastDice[0] === lastDice[1] && !gameOver) {
+      logMsg(tf('logDoubles', cp.name));
+      renderControls();
+    } else {
+      endTurn();
+    }
+  } else {
+    logMsg(tf('logCantBuy', cp.name, cellName(cp.position), cell.price));
+  }
+}
+
+/* ========== AUCTION ========== */
+function startAuction() {
+  var cp = players[currentPlayer];
+  var minBid = 10;
+  auctionState = {
+    propertyIndex: cp.position,
+    currentBid: minBid,
+    currentBidder: -1,
+    activeBidders: players.filter(function(p) { return p.status !== 'eliminated'; }).map(function(p) { return p.id; }),
+    order: 0
+  };
+  pendingAction = 'auction';
+  logMsg(tf('logAuctionStart', cellName(cp.position), minBid));
+  renderAuctionUI();
+}
+
+function renderAuctionUI() {
+  if (!auctionState) return;
+  var active = auctionState.activeBidders;
+  if (active.length === 0) { checkAuctionEnd(); return; }
+  var bidderId = active[auctionState.order % active.length];
+  var bidder = players[bidderId];
+  var centerEl = document.getElementById('center-area');
+  if (centerEl) centerEl.classList.add('auction-mode');
+  auctionTitle.textContent = '\u00ab' + cellName(auctionState.propertyIndex) + '\u00bb';
+  auctionInfo.textContent = tf('logAuctionTurn', bidder.name, auctionState.currentBid);
+  auctionLabel.textContent = t('auctionLabel');
+  bidBtn.textContent = t('bid');
+  passBtn.textContent = t('pass');
+  auctionBidInput.value = auctionState.currentBid + 10;
+  auctionBidInput.min = auctionState.currentBid + 10;
+  auctionArea.classList.add('visible');
+
+  bidBtn.onclick = function() {
+    var bidVal = parseInt(auctionBidInput.value) || 0;
+    if (bidVal < auctionState.currentBid + 10) {
+      auctionBidInput.value = auctionState.currentBid + 10;
+      return;
+    }
+    if (bidVal > bidder.money) {
+      auctionBidInput.value = bidder.money;
+      return;
+    }
+    auctionState.currentBid = bidVal;
+    auctionState.currentBidder = bidderId;
+    logMsg(tf('logAuctionBid', bidder.name, bidVal));
+    auctionState.order = (auctionState.order + 1) % auctionState.activeBidders.length;
+    renderAuctionUI();
+  };
+
+  passBtn.onclick = function() {
+    logMsg(tf('logAuctionPass', bidder.name));
+    var idx = auctionState.activeBidders.indexOf(bidderId);
+    if (idx >= 0) auctionState.activeBidders.splice(idx, 1);
+    if (auctionState.order >= auctionState.activeBidders.length) auctionState.order = 0;
+    checkAuctionEnd();
+  };
+}
+
+function checkAuctionEnd() {
+  if (!auctionState) return;
+  if (auctionState.activeBidders.length === 0 && auctionState.currentBidder === -1) {
+    logMsg(tf('logAuctionNone', cellName(auctionState.propertyIndex)));
+    auctionState = null;
+    pendingAction = null;
+    endTurn();
+    return;
+  }
+  if (auctionState.activeBidders.length <= 1 && auctionState.currentBidder !== -1) {
+    var winner = players[auctionState.currentBidder];
+    winner.money -= auctionState.currentBid;
+    ownership[auctionState.propertyIndex] = winner.id;
+    winner.owned.push(auctionState.propertyIndex);
+    logMsg(tf('logAuctionWon', winner.name, cellName(auctionState.propertyIndex), auctionState.currentBid));
+    auctionState = null;
+    pendingAction = null;
+    renderPlayers(); updateOwnershipDots(); updateTokens();
+    checkBankruptcy(winner);
+    endTurn();
+    return;
+  }
+  renderAuctionUI();
+}
+
+/* ========== JAIL ========== */
+function payJailFine() {
+  var cp = players[currentPlayer];
+  cp.money -= 50;
+  cp.status = 'free';
+  cp.inJailTurns = 0;
+  pendingAction = null;
+  logMsg(tf('logJailPay', cp.name));
+  renderPlayers(); updateTokens();
+  renderControls();
+}
+
+/* ========== BANKRUPTCY ========== */
+function checkBankruptcy(p) {
+  if (p.money < 0) {
+    if (p.owned.length > 0) {
+      var cheapest = p.owned[0];
+      for (var k = 0; k < p.owned.length; k++) {
+        if (boardData[p.owned[k]].price < boardData[cheapest].price) cheapest = p.owned[k];
+      }
+      sellProperty(p, cheapest);
+      if (p.money >= 0) return;
+    }
+    p.status = 'eliminated';
+    p.owned.forEach(function(idx) { delete ownership[idx]; });
+    p.owned = [];
+    logMsg(tf('logEliminated', p.name));
+    updateOwnershipDots();
+    renderPlayers(); updateTokens();
+    var active = players.filter(function(pl) { return pl.status !== 'eliminated'; });
+    if (active.length <= 1) {
+      gameOver = true;
+      logMsg(tf('logWinner', active[0].name));
+    }
+  }
+}
+
+/* ========== TURN MANAGEMENT ========== */
+function endTurn() {
+  if (gameOver) { renderControls(); return; }
+  if (pendingAction) { renderControls(); return; }
+  nextPlayer();
+  var cp = players[currentPlayer];
+  if (cp && cp.status === 'in_jail' && cp.inJailTurns === 0) {
+    pendingAction = 'jail';
+  }
+  renderPlayers(); updateTokens(); renderControls();
+}
+
+function nextPlayer() {
+  var count = 0;
+  do {
+    currentPlayer = (currentPlayer + 1) % players.length;
+    count++;
+  } while (players[currentPlayer].status === 'eliminated' && count < players.length && !gameOver);
+  doublesCount = 0;
+}
+
+/* ========== LOG ========== */
+function logMsg(text) {
+  if (!logBox) return;
+  var div = document.createElement('div');
+  div.className = 'log-entry';
+  div.textContent = text;
+  logBox.appendChild(div);
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+/* ========== THEME & LANG ========== */
+document.getElementById('theme-btn').addEventListener('click', function() {
+  var cur = document.documentElement.getAttribute('data-theme');
+  if (cur === 'dark') {
+    document.documentElement.removeAttribute('data-theme');
+    this.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#FFD700" stroke="#FF8F00" stroke-width="2"/><g stroke="#FF8F00" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.5" y1="4.5" x2="6.5" y2="6.5"/><line x1="17.5" y1="17.5" x2="19.5" y2="19.5"/><line x1="4.5" y1="19.5" x2="6.5" y2="17.5"/><line x1="17.5" y1="6.5" x2="19.5" y2="4.5"/></g></svg>';
+  } else {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    this.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#C0C0FF" stroke="#6868D0" stroke-width="2"/><circle cx="15" cy="9" r="1" fill="#6868D0"/><circle cx="17" cy="14" r="1.2" fill="#6868D0"/><circle cx="13.5" cy="13" r="0.8" fill="#6868D0"/></svg>';
+  }
+});
+
+document.querySelectorAll('.flag-btn').forEach(function(btn) {
+  if (btn.dataset.lang === lang) btn.classList.add('active');
+  btn.addEventListener('click', function() {
+    lang = this.dataset.lang;
+    document.querySelectorAll('.flag-btn').forEach(function(b) { b.classList.remove('active'); });
+    this.classList.add('active');
+    initGame();
+  });
+});
+
+/* ========== START ========== */
+initGame();
+</script>
+</body>
+</html>
