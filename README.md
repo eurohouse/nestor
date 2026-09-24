@@ -4,7 +4,7 @@ Indulge yourself in a beautiful, tasteful experience with our unique vintage dig
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/license/mit/)
 [![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen.svg)](https://github.com/eurohouse/nestor)
-[![Platform: Web](https://img.shields.io/badge/Platform-Web-blue.svg)](https://belleepoqueinspo.ru)
+[![Platform: Web](https://img.shields.io/badge/Platform-Web-blue.svg)](https://belleepoqueinspo.ru/EuroMonopoly.htm)
 [![Style: Desktop UI](https://img.shields.io/badge/Style-Desktop%20UI-indigo.svg)](https://reddit.com/r/EurohouseUXUI)
 [![Content: Curated](https://img.shields.io/badge/Content-Curated-purple.svg)](https://github.com/eurohouse/eurohouse)
 [![Worldwide: Global](https://img.shields.io/badge/Worldwide-Global-red.svg)](https://gitlab.com/openwebstd/eurohouse/nestor)
