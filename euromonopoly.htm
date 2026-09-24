@@ -263,9 +263,57 @@ button.game-btn.auction { background: var(--auction-bg); border-color: var(--auc
   table { font-size: 0.72rem; }
   .name-input { width: 50px; font-size: 0.75rem; }
 }
+
+/* Selection Screen */
+#select-screen {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: var(--bg); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; z-index: 9999; gap: 1rem;
+}
+#select-screen h2 { font-size: 1.5rem; }
+.color-choices { display: flex; gap: 1.5rem; margin: 1rem 0; }
+.color-circle {
+  width: 80px; height: 80px; border-radius: 50%; cursor: pointer;
+  border: 4px solid transparent; transition: border-color 0.3s, transform 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; color: #fff; font-weight: bold;
+}
+.color-circle.selected { border-color: #ffd700; transform: scale(1.1); }
+.color-circle.red { background: #e53935; }
+.color-circle.blue { background: #1e88e5; }
+.name-fields { display: flex; flex-direction: column; gap: 0.5rem; min-width: 300px; }
+.name-fields input {
+  padding: 0.6rem; font-size: 1rem; border: 2px solid var(--cell-border);
+  border-radius: 6px; background: var(--cell-bg); color: var(--text);
+}
+#start-game-btn {
+  padding: 0.7rem 2rem; font-size: 1.1rem; border: none; border-radius: 8px;
+  background: var(--btn-bg); color: #fff; cursor: pointer; font-weight: bold;
+}
+#start-game-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+#start-game-btn:not(:disabled):hover { background: var(--btn-border); }
+.ai-thinking {
+  padding: 0.6rem 1.2rem; font-size: 1rem; color: var(--text-muted);
+  font-style: italic;
+}
+
 </style>
 </head>
 <body>
+
+<div id="select-screen">
+  <h2 id="select-title">Choose your color</h2>
+  <div class="color-choices">
+    <div class="color-circle red" data-color="red" onclick="selectColor('red')">RED</div>
+    <div class="color-circle blue" data-color="blue" onclick="selectColor('blue')">BLUE</div>
+  </div>
+  <div class="name-fields">
+    <input type="text" id="human-name" placeholder="Your name" maxlength="20">
+    <input type="text" id="ai-name" placeholder="AI name" maxlength="20" value="AI">
+  </div>
+  <button id="start-game-btn" disabled onclick="startGameWithSelection()">Start Game</button>
+</div>
+
 
 <div class="header">
   <h1 id="title">EuroMonopoly</h1>
@@ -657,6 +705,12 @@ var ownership = {};
 var gameOver = false;
 var pendingAction = null;
 var auctionState = null;
+
+var selectedColor = null;
+var aiPlayerId = -1;
+var humanPlayerId = -1;
+var aiThinking = false;
+
 var boardBuilt = false;
 
 /* ========== GRID POSITIONS ========== */
@@ -680,13 +734,220 @@ var auctionBidInput = null;
 var bidBtn = null;
 var passBtn = null;
 
+
+
+function updateSelectScreenLang() {
+  var titles = {
+    en: 'Choose your color', fr: 'Choisissez votre couleur',
+    it: 'Scegli il tuo colore', de: 'W\u00e4hle deine Farbe',
+    ru: '\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0446\u0432\u0435\u0442'
+  };
+  var yourName = {
+    en: 'Your name', fr: 'Votre nom', it: 'Il tuo nome',
+    de: 'Dein Name', ru: '\u0412\u0430\u0448\u0435 \u0438\u043c\u044f'
+  };
+  var aiName = {
+    en: 'AI name', fr: 'Nom de l\'IA', it: 'Nome dell\'IA',
+    de: 'KI-Name', ru: '\u0418\u043c\u044f \u0418\u0418'
+  };
+  var startBtn = {
+    en: 'Start Game', fr: 'Commencer', it: 'Inizia',
+    de: 'Spiel starten', ru: '\u041d\u0430\u0447\u0430\u0442\u044c \u0438\u0433\u0440\u0443'
+  };
+  var el = document.getElementById('select-title');
+  if (el) el.textContent = titles[lang] || titles.en;
+  el = document.getElementById('human-name');
+  if (el) el.placeholder = yourName[lang] || yourName.en;
+  el = document.getElementById('ai-name');
+  if (el) el.placeholder = aiName[lang] || aiName.en;
+  el = document.getElementById('start-game-btn');
+  if (el) el.textContent = startBtn[lang] || startBtn.en;
+}
+
+function selectColor(color) {
+  selectedColor = color;
+  document.querySelectorAll('.color-circle').forEach(function(c) {
+    c.classList.toggle('selected', c.dataset.color === color);
+  });
+  document.getElementById('start-game-btn').disabled = false;
+}
+
+function startGameWithSelection() {
+  var humanName = document.getElementById('human-name').value || 'Player';
+  var aiName = document.getElementById('ai-name').value || 'AI';
+  if (!selectedColor) return;
+
+  // Determine which player is human and which is AI
+  if (selectedColor === 'red') {
+    humanPlayerId = 0;
+    aiPlayerId = 1;
+  } else {
+    humanPlayerId = 1;
+    aiPlayerId = 0;
+  }
+
+  // Store names for initGame
+  window._selectedNames = {
+    human: humanName,
+    ai: aiName,
+    humanColor: selectedColor
+  };
+
+  document.getElementById('select-screen').style.display = 'none';
+  initGame();
+}
+
+function isAI(pid) {
+  return pid === aiPlayerId;
+}
+
+/* ========== AI LOGIC ========== */
+function aiAct() {
+  if (aiThinking) return;
+  if (currentPlayer !== aiPlayerId) return;
+  if (gameOver) return;
+
+  var cp = players[aiPlayerId];
+  if (cp.status === 'eliminated') return;
+
+  aiThinking = true;
+
+  setTimeout(function() {
+    try {
+      if (pendingAction === 'buy') {
+        aiDecideBuy();
+      } else if (pendingAction === 'jail') {
+        aiDecideJail();
+      } else if (pendingAction === 'auction') {
+        aiAuctionMove();
+      } else if (!pendingAction) {
+        // Normal turn: roll dice (maybe sell first if low on money)
+        if (cp.money < 100 && cp.owned.length > 0) {
+          aiSellCheapest();
+        }
+        aiThinking = false;
+        rollDice();
+      } else {
+        aiThinking = false;
+      }
+    } catch (e) {
+      console.error('AI error:', e);
+      aiThinking = false;
+      endTurn();
+    }
+  }, 900);
+}
+
+function aiDecideBuy() {
+  var cp = players[aiPlayerId];
+  var cell = boardData[cp.position];
+  var reserve = 200;
+
+  if (cp.money >= cell.price + reserve) {
+    // Buy
+    aiThinking = false;
+    doBuy();
+  } else if (cp.money >= cell.price && Math.random() < 0.5) {
+    // Buy anyway (50% chance if can afford but low reserve)
+    aiThinking = false;
+    doBuy();
+  } else if (cp.money > 50 && Math.random() < 0.35) {
+    // Initiate auction (35% chance)
+    aiThinking = false;
+    startAuction();
+  } else {
+    // Skip
+    aiThinking = false;
+    pendingAction = null;
+    endTurn();
+  }
+}
+
+function aiDecideJail() {
+  var cp = players[aiPlayerId];
+  if (cp.money >= 250) {
+    // Pay fine
+    aiThinking = false;
+    payJailFine();
+  } else if (cp.owned.length > 0 && cp.money < 50) {
+    // Sell property first, then try doubles
+    aiSellCheapest();
+    aiThinking = false;
+    rollDice();
+  } else {
+    // Try rolling for doubles
+    aiThinking = false;
+    rollDice();
+  }
+}
+
+function aiSellCheapest() {
+  var cp = players[aiPlayerId];
+  if (cp.owned.length === 0) return;
+  var cheapest = cp.owned[0];
+  for (var k = 0; k < cp.owned.length; k++) {
+    if (boardData[cp.owned[k]].price < boardData[cheapest].price) cheapest = cp.owned[k];
+  }
+  sellProperty(cp, cheapest);
+}
+
+function aiAuctionMove() {
+  if (!auctionState) { aiThinking = false; return; }
+  var active = auctionState.activeBidders;
+  if (active.length === 0) { aiThinking = false; checkAuctionEnd(); return; }
+
+  var bidderId = active[auctionState.order % active.length];
+  if (!isAI(bidderId)) { aiThinking = false; return; } // Human's turn in auction
+
+  var bidder = players[bidderId];
+  var cell = boardData[auctionState.propertyIndex];
+  var maxBid = Math.floor(cell.price * 0.8);
+  var nextBid = auctionState.currentBid + 10;
+
+  setTimeout(function() {
+    try {
+      if (nextBid <= maxBid && nextBid <= bidder.money) {
+        // Place bid
+        auctionState.currentBid = nextBid;
+        auctionState.currentBidder = bidderId;
+        logMsg(tf('logAuctionBid', bidder.name, nextBid));
+        auctionState.order = (auctionState.order + 1) % auctionState.activeBidders.length;
+      } else {
+        // Pass
+        logMsg(tf('logAuctionPass', bidder.name));
+        var idx = auctionState.activeBidders.indexOf(bidderId);
+        if (idx >= 0) auctionState.activeBidders.splice(idx, 1);
+        if (auctionState.order >= auctionState.activeBidders.length) auctionState.order = 0;
+      }
+      aiThinking = false;
+      checkAuctionEnd();
+    } catch (e) {
+      console.error('AI auction error:', e);
+      aiThinking = false;
+      checkAuctionEnd();
+    }
+  }, 800);
+}
+
+
 /* ========== INIT ========== */
 function initGame() {
-  var p1n = { en: 'Player 1', fr: 'Joueur 1', it: 'Giocatore 1', de: 'Spieler 1', ru: '\u0418\u0433\u0440\u043e\u043a 1' };
-  var p2n = { en: 'Player 2', fr: 'Joueur 2', it: 'Giocatore 2', de: 'Spieler 2', ru: '\u0418\u0433\u0440\u043e\u043a 2' };
+  var p1n, p2n;
+  if (window._selectedNames) {
+    if (window._selectedNames.humanColor === 'red') {
+      p1n = window._selectedNames.human;
+      p2n = window._selectedNames.ai;
+    } else {
+      p1n = window._selectedNames.ai;
+      p2n = window._selectedNames.human;
+    }
+  } else {
+    p1n = 'Player 1';
+    p2n = 'Player 2';
+  }
   players = [
-    { id: 0, name: p1n[lang], money: START_MONEY, position: 0, owned: [], status: 'free', color: PLAYER_COLORS[0], inJailTurns: 0 },
-    { id: 1, name: p2n[lang], money: START_MONEY, position: 0, owned: [], status: 'free', color: PLAYER_COLORS[1], inJailTurns: 0 }
+    { id: 0, name: p1n, money: START_MONEY, position: 0, owned: [], status: 'free', color: PLAYER_COLORS[0], inJailTurns: 0 },
+    { id: 1, name: p2n, money: START_MONEY, position: 0, owned: [], status: 'free', color: PLAYER_COLORS[1], inJailTurns: 0 }
   ];
   currentPlayer = 0;
   lastDice = [0, 0];
@@ -922,12 +1183,24 @@ function renderControls() {
     var ngBtn = document.createElement('button');
     ngBtn.className = 'game-btn';
     ngBtn.textContent = t('newGame');
-    ngBtn.onclick = initGame;
+    ngBtn.onclick = function() { document.getElementById('select-screen').style.display = 'flex'; };
     btnRow.appendChild(ngBtn);
     return;
   }
   var cp = players[currentPlayer];
   if (cp.status === 'eliminated') { nextPlayer(); renderPlayers(); updateTokens(); renderControls(); return; }
+
+  // AI trigger: if current player is AI, show thinking and call aiAct
+  if (isAI(currentPlayer)) {
+    if (!aiThinking) {
+      var thinkDiv = document.createElement('div');
+      thinkDiv.className = 'ai-thinking';
+      thinkDiv.textContent = '\u{1F9E0} ' + cp.name + ' thinking...';
+      btnRow.appendChild(thinkDiv);
+      aiAct();
+    }
+    return; // Never show human buttons for AI player
+  }
 
   if (pendingAction === 'buy') {
     var cell = boardData[cp.position];
@@ -1208,6 +1481,12 @@ function renderAuctionUI() {
   auctionBidInput.min = auctionState.currentBid + 10;
   auctionArea.classList.add('visible');
 
+  // AI auction trigger
+  if (isAI(bidderId) && !aiThinking) {
+    aiAuctionMove();
+    return;
+  }
+
   bidBtn.onclick = function() {
     var bidVal = parseInt(auctionBidInput.value) || 0;
     if (bidVal < auctionState.currentBid + 10) {
@@ -1345,12 +1624,15 @@ document.querySelectorAll('.flag-btn').forEach(function(btn) {
     lang = this.dataset.lang;
     document.querySelectorAll('.flag-btn').forEach(function(b) { b.classList.remove('active'); });
     this.classList.add('active');
-    initGame();
+    updateSelectScreenLang();
+    document.getElementById('select-screen').style.display = 'flex';
   });
 });
 
 /* ========== START ========== */
-initGame();
+updateSelectScreenLang();
+
+// Game starts after selection screen
 </script>
 </body>
 </html>
