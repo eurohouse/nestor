@@ -228,6 +228,8 @@ button.game-btn.auction { background: var(--auction-bg); border-color: var(--auc
 #properties-detail { margin-top: 0.8rem; width: 100%; }
 .prop-block { margin-bottom: 0.6rem; border: 1px solid var(--cell-border); border-radius: 6px; overflow: hidden; }
 .prop-block-header { background: var(--th-bg); color: var(--th-text); padding: 0.4rem 0.5rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; }
+.prop-block-header { cursor: pointer; transition: box-shadow 0.15s; }
+.prop-block-header:hover { box-shadow: 0 0 0 2px #FFD700 inset; }
 .prop-block-body { padding: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.3rem; background: var(--cell-bg); }
 .prop-card { display: flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.4rem; border: 1px solid var(--cell-border); border-radius: 4px; font-size: 0.82rem; }
 .prop-card .prop-color { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
@@ -264,55 +266,12 @@ button.game-btn.auction { background: var(--auction-bg); border-color: var(--auc
   .name-input { width: 50px; font-size: 0.75rem; }
 }
 
-/* Selection Screen */
-#select-screen {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: var(--bg); display: flex; flex-direction: column;
-  align-items: center; justify-content: center; z-index: 9999; gap: 1rem;
-}
-#select-screen h2 { font-size: 1.5rem; }
-.color-choices { display: flex; gap: 1.5rem; margin: 1rem 0; }
-.color-circle {
-  width: 80px; height: 80px; border-radius: 50%; cursor: pointer;
-  border: 4px solid transparent; transition: border-color 0.3s, transform 0.2s;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.7rem; color: #fff; font-weight: bold;
-}
-.color-circle.selected { border-color: #ffd700; transform: scale(1.1); }
-.color-circle.red { background: #e53935; }
-.color-circle.blue { background: #1e88e5; }
-.name-fields { display: flex; flex-direction: column; gap: 0.5rem; min-width: 300px; }
-.name-fields input {
-  padding: 0.6rem; font-size: 1rem; border: 2px solid var(--cell-border);
-  border-radius: 6px; background: var(--cell-bg); color: var(--text);
-}
-#start-game-btn {
-  padding: 0.7rem 2rem; font-size: 1.1rem; border: none; border-radius: 8px;
-  background: var(--btn-bg); color: #fff; cursor: pointer; font-weight: bold;
-}
-#start-game-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-#start-game-btn:not(:disabled):hover { background: var(--btn-border); }
-.ai-thinking {
-  padding: 0.6rem 1.2rem; font-size: 1rem; color: var(--text-muted);
-  font-style: italic;
-}
 
 </style>
 </head>
 <body>
 
-<div id="select-screen">
-  <h2 id="select-title">Choose your color</h2>
-  <div class="color-choices">
-    <div class="color-circle red" data-color="red" onclick="selectColor('red')">RED</div>
-    <div class="color-circle blue" data-color="blue" onclick="selectColor('blue')">BLUE</div>
-  </div>
-  <div class="name-fields">
-    <input type="text" id="human-name" placeholder="Your name" maxlength="20">
-    <input type="text" id="ai-name" placeholder="AI name" maxlength="20" value="AI">
-  </div>
-  <button id="start-game-btn" disabled onclick="startGameWithSelection()">Start Game</button>
-</div>
+
 
 
 <div class="header">
@@ -323,6 +282,7 @@ button.game-btn.auction { background: var(--auction-bg); border-color: var(--auc
     <button class="header-btn flag-btn" data-lang="it" title="Italiano"><img src="Flag.IT.webp" alt="IT" width="28" height="28"></button>
     <button class="header-btn flag-btn" data-lang="de" title="Deutsch"><img src="Flag.DE.webp" alt="DE" width="28" height="28"></button>
     <button class="header-btn flag-btn" data-lang="ru" title="Русский"><img src="Flag.RU.webp" alt="RU" width="28" height="28"></button>
+    <button class="header-btn" id="new-game-btn" title="New Game" style="display:flex;align-items:center;justify-content:center;padding:2px 4px;"><svg width="24" height="24" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="xpPage" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.5" stop-color="#f0f0f0"/><stop offset="1" stop-color="#d8d8d8"/></linearGradient><linearGradient id="xpPlus" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#86d36a"/><stop offset="0.5" stop-color="#4caf3f"/><stop offset="1" stop-color="#2e7d2e"/></linearGradient><linearGradient id="xpPlusGloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.7"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.2"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient></defs><path d="M10 4 L26 4 L34 12 L34 44 L10 44 Z" fill="url(#xpPage)" stroke="#9a9a9a" stroke-width="1"/><path d="M26 4 L26 12 L34 12 Z" fill="#c8c8c8" stroke="#9a9a9a" stroke-width="1"/><line x1="15" y1="20" x2="29" y2="20" stroke="#7a7a7a" stroke-width="1.5"/><line x1="15" y1="26" x2="29" y2="26" stroke="#7a7a7a" stroke-width="1.5"/><line x1="15" y1="32" x2="25" y2="32" stroke="#7a7a7a" stroke-width="1.5"/><circle cx="34" cy="34" r="9" fill="url(#xpPlus)" stroke="#1b5e1b" stroke-width="1.5"/><rect x="31" y="29" width="6" height="2" rx="1" fill="#fff"/><rect x="33" y="27" width="2" height="6" rx="1" fill="#fff"/><path d="M27 31 A8 8 0 0 1 41 31 A8 8 0 0 0 27 31" fill="url(#xpPlusGloss)"/></svg></button>
     <button class="header-btn" id="theme-btn"><svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#FFD700" stroke="#FF8F00" stroke-width="2"/><g stroke="#FF8F00" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.5" y1="4.5" x2="6.5" y2="6.5"/><line x1="17.5" y1="17.5" x2="19.5" y2="19.5"/><line x1="4.5" y1="19.5" x2="6.5" y2="17.5"/><line x1="17.5" y1="6.5" x2="19.5" y2="4.5"/></g></svg></button>
   </div>
 </div>
@@ -341,6 +301,7 @@ const I18N = {
     roll: 'Roll Dice', buy: 'Buy', auction: 'Auction', skip: 'Skip',
     sellProp: 'Sell', payJail: 'Pay \u20ac50', rollDoubles: 'Roll for Doubles',
     newGame: 'New Game', bid: 'Bid', pass: 'Pass', auctionLabel: 'Your bid (\u20ac):',
+    thinking: 'thinking...', clickToPlay: 'Click to play as this player',
     thPlayer: 'Player', thMoney: 'Money', thPos: 'Position', thProps: 'Properties', thStatus: 'Status',
     stFree: 'free', stJail: 'in jail', stElim: 'eliminated',
     logStart: 'Game started! Click "Roll Dice".',
@@ -402,6 +363,7 @@ const I18N = {
     payJail: '\u0417\u0430\u043f\u043b\u0430\u0442\u0438\u0442\u044c 50\u20ac',
     rollDoubles: '\u0411\u0440\u043e\u0441\u0438\u0442\u044c \u043d\u0430 \u0434\u0443\u0431\u043b\u044c',
     newGame: '\u041d\u043e\u0432\u0430\u044f \u0438\u0433\u0440\u0430',
+    thinking: '\u0434\u0443\u043c\u0430\u0435\u0442...', clickToPlay: '\u041d\u0430\u0436\u043c\u0438\u0442\u0435, \u0447\u0442\u043e\u0431\u044b \u0438\u0433\u0440\u0430\u0442\u044c \u0437\u0430 \u044d\u0442\u043e\u0433\u043e \u0438\u0433\u0440\u043e\u043a\u0430',
     bid: '\u0421\u0442\u0430\u0432\u043a\u0430', pass: '\u041f\u0430\u0441', auctionLabel: '\u0412\u0430\u0448\u0430 \u0441\u0442\u0430\u0432\u043a\u0430 (\u20ac):',
     thPlayer: '\u0418\u0433\u0440\u043e\u043a', thMoney: '\u0414\u0435\u043d\u044c\u0433\u0438', thPos: '\u041f\u043e\u0437\u0438\u0446\u0438\u044f',
     thProps: '\u0421\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u043d\u043e\u0441\u0442\u044c', thStatus: '\u0421\u0442\u0430\u0442\u0443\u0441',
@@ -462,6 +424,7 @@ const I18N = {
     roll: 'Lancer les dés', buy: 'Acheter', auction: 'Enchère', skip: 'Passer',
     sellProp: 'Vendre', payJail: 'Payer 50€', rollDoubles: 'Doubler',
     newGame: 'Nouvelle partie', bid: 'Enchérir', pass: 'Passer', auctionLabel: 'Votre enchère (€):',
+    thinking: 'réfléchit...', clickToPlay: 'Cliquez pour jouer comme ce joueur',
     thPlayer: 'Joueur', thMoney: 'Argent', thPos: 'Position', thProps: 'Propriétés', thStatus: 'Statut',
     stFree: 'libre', stJail: 'en prison', stElim: 'éliminé',
     logStart: 'Partie commencée! Cliquez sur «Lancer les dés».',
@@ -520,6 +483,7 @@ const I18N = {
     roll: 'Tira i dadi', buy: 'Compra', auction: 'Asta', skip: 'Salta',
     sellProp: 'Vendi', payJail: 'Paga 50€', rollDoubles: 'Tira per doppio',
     newGame: 'Nuova partita', bid: 'Offerta', pass: 'Passa', auctionLabel: 'La tua offerta (€):',
+    thinking: 'pensa...', clickToPlay: 'Clicca per giocare come questo giocatore',
     thPlayer: 'Giocatore', thMoney: 'Soldi', thPos: 'Posizione', thProps: 'Proprietà', thStatus: 'Stato',
     stFree: 'libero', stJail: 'in prigione', stElim: 'eliminato',
     logStart: 'Partita iniziata! Clicca «Tira i dadi».',
@@ -578,6 +542,7 @@ const I18N = {
     roll: 'Würfeln', buy: 'Kaufen', auction: 'Auktion', skip: 'Überspringen',
     sellProp: 'Verkaufen', payJail: '50€ zahlen', rollDoubles: 'Pasch würfeln',
     newGame: 'Neues Spiel', bid: 'Bieten', pass: 'Passen', auctionLabel: 'Ihr Gebot (€):',
+    thinking: 'denkt nach...', clickToPlay: 'Klicken Sie, um als dieser Spieler zu spielen',
     thPlayer: 'Spieler', thMoney: 'Geld', thPos: 'Position', thProps: 'Besitztümer', thStatus: 'Status',
     stFree: 'frei', stJail: 'im Gefängnis', stElim: 'ausgeschieden',
     logStart: 'Spiel gestartet! Klicken Sie «Würfeln».',
@@ -736,67 +701,6 @@ var passBtn = null;
 
 
 
-function updateSelectScreenLang() {
-  var titles = {
-    en: 'Choose your color', fr: 'Choisissez votre couleur',
-    it: 'Scegli il tuo colore', de: 'W\u00e4hle deine Farbe',
-    ru: '\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0446\u0432\u0435\u0442'
-  };
-  var yourName = {
-    en: 'Your name', fr: 'Votre nom', it: 'Il tuo nome',
-    de: 'Dein Name', ru: '\u0412\u0430\u0448\u0435 \u0438\u043c\u044f'
-  };
-  var aiName = {
-    en: 'AI name', fr: 'Nom de l\'IA', it: 'Nome dell\'IA',
-    de: 'KI-Name', ru: '\u0418\u043c\u044f \u0418\u0418'
-  };
-  var startBtn = {
-    en: 'Start Game', fr: 'Commencer', it: 'Inizia',
-    de: 'Spiel starten', ru: '\u041d\u0430\u0447\u0430\u0442\u044c \u0438\u0433\u0440\u0443'
-  };
-  var el = document.getElementById('select-title');
-  if (el) el.textContent = titles[lang] || titles.en;
-  el = document.getElementById('human-name');
-  if (el) el.placeholder = yourName[lang] || yourName.en;
-  el = document.getElementById('ai-name');
-  if (el) el.placeholder = aiName[lang] || aiName.en;
-  el = document.getElementById('start-game-btn');
-  if (el) el.textContent = startBtn[lang] || startBtn.en;
-}
-
-function selectColor(color) {
-  selectedColor = color;
-  document.querySelectorAll('.color-circle').forEach(function(c) {
-    c.classList.toggle('selected', c.dataset.color === color);
-  });
-  document.getElementById('start-game-btn').disabled = false;
-}
-
-function startGameWithSelection() {
-  var humanName = document.getElementById('human-name').value || 'Player';
-  var aiName = document.getElementById('ai-name').value || 'AI';
-  if (!selectedColor) return;
-
-  // Determine which player is human and which is AI
-  if (selectedColor === 'red') {
-    humanPlayerId = 0;
-    aiPlayerId = 1;
-  } else {
-    humanPlayerId = 1;
-    aiPlayerId = 0;
-  }
-
-  // Store names for initGame
-  window._selectedNames = {
-    human: humanName,
-    ai: aiName,
-    humanColor: selectedColor
-  };
-
-  document.getElementById('select-screen').style.display = 'none';
-  initGame();
-}
-
 function isAI(pid) {
   return pid === aiPlayerId;
 }
@@ -931,6 +835,41 @@ function aiAuctionMove() {
 
 
 /* ========== INIT ========== */
+function updateTitle() {
+  var el = document.getElementById('title');
+  if (el) el.textContent = t('title');
+}
+
+function startNewGame(humanColor) {
+  // Save current names before reset
+  var savedNames = players.map(function(p) { return p.name; });
+  
+  if (humanColor === 'red') {
+    humanPlayerId = 0;
+    aiPlayerId = 1;
+  } else {
+    humanPlayerId = 1;
+    aiPlayerId = 0;
+  }
+  
+  var p1Name, p2Name;
+  if (savedNames.length >= 2) {
+    p1Name = savedNames[0];
+    p2Name = savedNames[1];
+  } else {
+    p1Name = 'Player 1';
+    p2Name = 'Player 2';
+  }
+  
+  window._selectedNames = {
+    human: humanPlayerId === 0 ? p1Name : p2Name,
+    ai: aiPlayerId === 0 ? p1Name : p2Name,
+    humanColor: humanColor
+  };
+  
+  initGame();
+}
+
 function initGame() {
   var p1n, p2n;
   if (window._selectedNames) {
@@ -958,9 +897,9 @@ function initGame() {
   auctionState = null;
   buildBoard();
   renderPlayers();
-  renderControls();
   if (logBox) logBox.innerHTML = '';
   logMsg(t('logStart'));
+  renderControls();
 }
 
 /* ========== BUILD BOARD (once per init) ========== */
@@ -1101,12 +1040,20 @@ function renderPropertiesDetail() {
     block.className = 'prop-block';
     var header = document.createElement('div');
     header.className = 'prop-block-header';
+    header.title = t('clickToPlay');
+    header.dataset.pid = p.id;
     var statusText = p.status === 'eliminated' ? t('stElim') : (p.status === 'in_jail' ? t('stJail') : t('stFree'));
     var nameInput = '<input class="prop-name-input" type="text" value="' + p.name + '" data-pid="' + p.id + '">';
     header.innerHTML = '<span class="color-dot" style="background:' + p.color + '"></span>' +
       nameInput +
       '<span style="margin-left:auto">' + p.money + ' \u20ac</span>' +
       '<span style="opacity:0.7">(' + statusText + ')</span>';
+    header.addEventListener('click', function(e) {
+      if (e.target.tagName === 'INPUT') return;
+      var pid = parseInt(this.dataset.pid);
+      var color = (pid === 0) ? 'red' : 'blue';
+      startNewGame(color);
+    });
     if (p.status === 'eliminated') block.style.opacity = '0.45';
     if (p === players[currentPlayer] && !gameOver) block.style.boxShadow = '0 0 0 2px var(--row-current)';
     block.appendChild(header);
@@ -1129,6 +1076,7 @@ function renderPropertiesDetail() {
   });
   var inputs = container.querySelectorAll('.prop-name-input');
   inputs.forEach(function(inp) {
+    inp.addEventListener('click', function(e) { e.stopPropagation(); });
     inp.addEventListener('change', function() {
       var pid = parseInt(this.dataset.pid);
       var p = players[pid];
@@ -1183,7 +1131,7 @@ function renderControls() {
     var ngBtn = document.createElement('button');
     ngBtn.className = 'game-btn';
     ngBtn.textContent = t('newGame');
-    ngBtn.onclick = function() { document.getElementById('select-screen').style.display = 'flex'; };
+    ngBtn.onclick = function() { startNewGame(humanPlayerId === 0 ? 'red' : 'blue'); };
     btnRow.appendChild(ngBtn);
     return;
   }
@@ -1195,7 +1143,7 @@ function renderControls() {
     if (!aiThinking) {
       var thinkDiv = document.createElement('div');
       thinkDiv.className = 'ai-thinking';
-      thinkDiv.textContent = '\u{1F9E0} ' + cp.name + ' thinking...';
+      thinkDiv.textContent = '\u{1F9E0} ' + cp.name + ' ' + t('thinking');
       btnRow.appendChild(thinkDiv);
       aiAct();
     }
@@ -1607,6 +1555,10 @@ function logMsg(text) {
 }
 
 /* ========== THEME & LANG ========== */
+document.getElementById('new-game-btn').addEventListener('click', function() {
+  startNewGame(humanPlayerId === 0 ? 'red' : 'blue');
+});
+
 document.getElementById('theme-btn').addEventListener('click', function() {
   var cur = document.documentElement.getAttribute('data-theme');
   if (cur === 'dark') {
@@ -1624,15 +1576,14 @@ document.querySelectorAll('.flag-btn').forEach(function(btn) {
     lang = this.dataset.lang;
     document.querySelectorAll('.flag-btn').forEach(function(b) { b.classList.remove('active'); });
     this.classList.add('active');
-    updateSelectScreenLang();
-    document.getElementById('select-screen').style.display = 'flex';
+    updateTitle();
+    startNewGame(humanPlayerId === 0 ? 'red' : 'blue');
   });
 });
 
 /* ========== START ========== */
-updateSelectScreenLang();
-
-// Game starts after selection screen
+updateTitle();
+startNewGame('red');
 </script>
 </body>
 </html>
