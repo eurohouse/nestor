@@ -2,21 +2,24 @@
     "000": {
         "title": "Eurohouse Imperial Wallpaper Collection",
         "language": {
-            "CH": "Fonto Pantalla Imperiale de Eurohouse",
-            "GR": "Εικόνες φόντου Eurohouse Imperial",
-            "CY": "Εικόνες φόντου Eurohouse Imperial",
-            "RU": "Фоновые изображения Eurohouse Imperial",
-            "UA": "Фонові зображення Eurohouse Imperial",
-            "BY": "Фонавыя выявы Eurohouse Imperial",
-            "JP": "ユーロハウス インペリアルの背景画像",
-            "KR": "유로하우스 임페리얼 배경 이미지",
-            "CN": "Eurohouse 帝国风格背景图像",
             "AE": "خلفيات يوروهاوس إمبريال",
-            "SA": "خلفيات يوروهاوس إمبريال",
+            "BY": "Фонавыя выявы Eurohouse Imperial",
+            "CH": "Fonto Pantalla Imperiale de Eurohouse",
+            "CN": "Eurohouse 帝国风格背景图像",
+            "CY": "Εικόνες φόντου Eurohouse Imperial",
+            "GR": "Εικόνες φόντου Eurohouse Imperial",
             "IQ": "خلفيات يوروهاوس إمبريال",
             "IR": "خلفيات يوروهاوس إمبريال",
+            "JP": "ユーロハウス インペリアルの背景画像",
+            "KP": "유로하우스 임페리얼 배경 이미지",
+            "KR": "유로하우스 임페리얼 배경 이미지",
             "KW": "خلفيات يوروهاوس إمبريال",
-            "QA": "خلفيات يوروهاوس إمبريال"
+            "QA": "خلفيات يوروهاوس إمبريال",
+            "RU": "Фоновые изображения Eurohouse Imperial",
+            "SA": "خلفيات يوروهاوس إمبريال",
+            "SP": "Fonto Pantalla Imperiale de Eurohouse",
+            "UA": "Фонові зображення Eurohouse Imperial",
+            "VA": "Fonto Pantalla Imperiale de Eurohouse"
         }
     }
 }
