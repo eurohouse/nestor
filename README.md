@@ -1,4 +1,6 @@
-# Eurohouse Digital Content Collection
+# Eurohouse
+
+## Eurohouse Digital Content Collection
 
 Indulge yourself in a beautiful, tasteful experience with our unique vintage digital art collection.
 
@@ -9,21 +11,50 @@ Indulge yourself in a beautiful, tasteful experience with our unique vintage dig
 [![Content: Curated](https://img.shields.io/badge/Content-Curated-purple.svg)](https://github.com/eurohouse/eurohouse)
 [![Worldwide: Global](https://img.shields.io/badge/Worldwide-Global-red.svg)](https://gitlab.com/openwebstd/eurohouse/nestor)
 
-**Eurohouse** is an open‑source IT project featuring a browser‑based desktop‑style *web application* and associated content. Hosted on **GitHub**, **GitLab**, **GitVerse**, and other *Git*‑based repositories worldwide, it is distributed freely "as is".
+## Overview
 
-The app provides curated collections (wallpapers, digital music albums) and supports integration of third‑party content (e.g., *backgrounds*, *music*) placed in the server’s working directory via *Git*.
+**Eurohouse** is an open‑source IT project featuring a browser‑based desktop‑style web application and associated curated content. Hosted on GitHub, GitLab, GitVerse, and other Git‑based repositories, it is distributed freely “as is”.
 
-Conceptually, **Eurohouse** synthesizes:
-- Scientific method (*methodus scientifica*)
-- Academic rigor (*accuratio academica*)
-- Historical accuracy (*veritas historica*)
-- Evidence‑based medicine (*medicina testimoniis probata*)
-- Christian values (*fides, spes, caritas*)
-- Free will (*liberum arbitrium*)
-- High culture (*cultura sublimis*)
+The app provides curated collections (wallpapers, digital music albums) and supports integration of third‑party content (e.g., backgrounds, music) placed in the server’s working directory via Git.
 
-These elements together form a cultural code reflecting **classical Europe** and its civilizational branches—including **Russia**, the **United States**, **Latin America**, and others.
+Conceptually, Eurohouse synthesizes two complementary layers of human experience: the rational‑structural layer (neocortex) and the affective‑instinctive layer (limbic system). This dual‑layer model ensures both methodological rigor and alignment with fundamental human needs — including the innate drive to own and manage material resources.
 
-Technically, it is an *online reference* and *digital archive* and *museum* accessible from any internet‑connected device. Not a *feature film* or *video game*, it lets users manage and personalize *content subscriptions* within the app.
+![Eurohouse Imperial Banner](https://github.com/eurohouse/nestor/blob/main/nestor.000.20.webp?raw=true)
+
+## Core Philosophy: Dual‑Layer Model
+
+Eurohouse is built on the balance between disciplined reason and universal human drives. This structure directly informs both the technical design and the curation policy.
+
+### Neocortex‑Driven Tenets (Rational, Structural, Civilizational)
+
+These principles reflect the classical European cultural code and the demand for intellectual clarity and ethical responsibility:
+
+- **Scientific Method.** Rationality, consistency, and systematic thinking are mandatory: reasoning must be step‑by‑step, logically consistent, and free of contradictions. In practice, this means reproducible workflows, clear logic paths, and verifiable outcomes.
+- **Academic Rigor.** Essential in any serious pursuit, academic rigor translates into precise taxonomy, unambiguous definitions, version control, and transparent metadata. Within Eurohouse, this is implemented through structured content classification, versioned assets, and traceable changes.
+- **Historical Accuracy.** History must be approached with objectivity: sources are carefully analyzed, facts verified, and myths or fabrications explicitly separated from evidence. The project enforces this via curated source lists, contextual annotations, and provenance tracking.
+- **Evidence‑Based Approach.** As a general principle of reliability, Eurohouse rejects unsubstantiated claims and charlatanism. Every assertion with scientific or factual weight must be supported by verifiable data, with clear references and reproducible criteria.
+- **Christian Values.** Ethical framing is grounded in faith, hope, and love: dignity of the person, moderation in pleasures, reasonable asceticism without self‑flagellation, and no inherent conflict with science. These values manifest as human‑centered design, respectful tone, and moral boundaries in content selection.
+- **Free Will.** As a God‑given gift and a cornerstone of human dignity, free will is protected by maximum user control over data, appearance, and behavior. Eurohouse guarantees autonomy in personalization and data management, ensuring that users remain the ultimate decision‑makers.
+- **High Culture.** Excellence in aesthetics, language precision, and cultural references is non‑negotiable. The project curates content to maintain a consistent standard of cultural quality, preserving the best of human creation within a coherent stylistic framework.
+
+Together, these tenets form a civilizational code that reflects classical Europe and its global branches, including Russia, the United States, Latin America, and others.
+
+![Eurohouse Abstract Wallpaper](https://github.com/eurohouse/nestor/blob/main/nestor.000.21.webp?raw=true)
+
+### Limbic‑System‑Driven Tenets (Universal, Instinctive, Nature‑Rooted)
+
+These seven imperatives are universal to humans and rooted in biology and prehistory. They extend beyond any single civilization and correspond to fundamental biological and social drives — including the deep‑seated need to own and manage resources:
+
+- **Vitality.** The subconscious drive for longevity, health, and quality of life: preserving and multiplying one’s life resources. In the product, this translates into sustainable UX, energy‑conscious design, and features that help users preserve their physical and mental stamina.
+- **Nutrition.** A basic biological necessity: humans must eat and drink to survive. As a design principle, this emphasizes the importance of reliable, simple, and essential functions that work without fail and require minimal cognitive load.
+- **Comfort.** Rest, sleep, leisure, and a comfortable environment are not luxuries but prerequisites for health and productivity. Eurohouse implements this through ergonomic interfaces, predictable behavior, low‑stress transitions, and calming visual modes.
+- **Eroticism.** Beyond reproduction, eroticism is a powerful life force that shapes attraction, bonding, and complex social dynamics. In the cultural layer of the project, this is expressed through respectful treatment of human themes, artistic value, and historical context, avoiding vulgarity while acknowledging the depth of human desire.
+- **Economy.** Humans have an innate need to own material things and to participate in exchange. This drive contributes to social significance and economic fulfillment, and it is best realized in market environments with clear supply and demand. In Eurohouse, this principle is reflected in transparent licensing (e.g., MIT), clear ownership rules for user content, and support for personal collections, sharing, and resource management.
+- **Challenge.** Competition, games, and overcoming limits are vital for growth, while sports and physical activity support health. The platform supports this through optional gamified elements, skill‑building tools, achievements, and structured challenges that encourage development without forcing engagement.
+- **Soulfulness.** Hobbies, mindfulness, and meaningful pursuits are matters of personal agency: activities people choose not out of necessity but from inner motivation. Eurohouse provides space for self‑expression, personal notes, playlists, curated moods, and customization that respects individual taste and inner life.
+
+This dual‑layer framework positions Eurohouse as a holistic environment that integrates cognitive discipline with fundamental human drives, combining civilizational achievements with innate biological imperatives.
+
+Technically, Eurohouse functions as an *online reference*, *digital archive*, and *micro‑museum*, accessible from any internet‑connected device. It is not a feature film or video game, but a tool for managing and personalizing content subscriptions within a structured, desktop‑like interface.
 
 ![Periodic Table of Chemical Elements](https://github.com/eurohouse/nestor/blob/main/Periodic%20Table.png?raw=true)
